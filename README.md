@@ -2,8 +2,14 @@
 
 **A search engine that, on divisive topics, doesn't lock you into a single perspective.**
 
-Project for the *Information Retrieval and Natural Language Processing* course, University of Calabria, A.Y. 2025/2026.
-[Davide Cinelli](https://github.com/davidecinelli26) · [Giuseppe Cuiuri](https://github.com/GiuseppeCuiuri)
+---
+
+## Authors
+
+- [Davide Cinelli](https://github.com/davidecinelli26)
+- [Giuseppe Cuiuri](https://github.com/GiuseppeCuiuri)
+
+Developed for the *Information Retrieval and Natural Language Processing* course, MSc in Computer Engineering, University of Calabria, A.Y. 2025/2026.
 
 ---
 
