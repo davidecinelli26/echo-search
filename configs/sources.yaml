@@ -1,0 +1,59 @@
+# ============================================================
+# Echo-Search — Registro di credibilità delle fonti
+# ============================================================
+# DUE ASSI ORTOGONALI (piano operativo, principio 2):
+#   - orientation : asse OPINIONE  (left | lean_left | center | lean_right | right)  → DIVERSIFICARE
+#   - factual     : asse AFFIDABILITÀ (high | mixed | low)                            → FILTRARE / PESARE
+# tier:
+#   1 = fonte primaria / scientifica  → usata come Knowledge Base di VERITÀ nel fact-check
+#   2 = giornalismo mainstream         → nel retrieval, mostrata con badge di affidabilità
+#   3 = bassa affidabilità / opinione  → mostrata ma segnalata, MAI evidenza di verità
+#
+# Rating indicativi basati su AllSides + Media Bias/Fact Check (lookup per dominio).
+# Le fonti non elencate ricadono nel `default` (tier 3, prudenziale).
+
+default:
+  orientation: unknown
+  factual: unknown
+  tier: 3
+
+sources:
+  # --- Tier 1: fonti primarie / scientifiche (evidenza di verità) ---
+  en.wikipedia.org: { orientation: center, factual: high, tier: 1 }
+  who.int:          { orientation: center, factual: high, tier: 1 }
+  cdc.gov:          { orientation: center, factual: high, tier: 1 }
+  nih.gov:          { orientation: center, factual: high, tier: 1 }
+  cochrane.org:     { orientation: center, factual: high, tier: 1 }
+  ipcc.ch:          { orientation: center, factual: high, tier: 1 }
+  iaea.org:         { orientation: center, factual: high, tier: 1 }
+  nature.com:       { orientation: center, factual: high, tier: 1 }
+  science.org:      { orientation: center, factual: high, tier: 1 }
+
+  # --- Tier 2: giornalismo mainstream, factual reporting alto ---
+  reuters.com:        { orientation: center,     factual: high,  tier: 2 }
+  apnews.com:         { orientation: center,     factual: high,  tier: 2 }
+  bbc.com:            { orientation: lean_left,  factual: high,  tier: 2 }
+  bbc.co.uk:          { orientation: lean_left,  factual: high,  tier: 2 }
+  npr.org:            { orientation: lean_left,  factual: high,  tier: 2 }
+  theguardian.com:    { orientation: lean_left,  factual: high,  tier: 2 }
+  nytimes.com:        { orientation: lean_left,  factual: high,  tier: 2 }
+  washingtonpost.com: { orientation: lean_left,  factual: high,  tier: 2 }
+  wsj.com:            { orientation: lean_right, factual: high,  tier: 2 }
+  economist.com:      { orientation: center,     factual: high,  tier: 2 }
+  bloomberg.com:      { orientation: center,     factual: high,  tier: 2 }
+  nbcnews.com:        { orientation: lean_left,  factual: high,  tier: 2 }
+  cbsnews.com:        { orientation: lean_left,  factual: high,  tier: 2 }
+  abcnews.go.com:     { orientation: lean_left,  factual: high,  tier: 2 }
+  usatoday.com:       { orientation: center,     factual: high,  tier: 2 }
+  thehill.com:        { orientation: center,     factual: high,  tier: 2 }
+  politico.com:       { orientation: lean_left,  factual: high,  tier: 2 }
+  cnn.com:            { orientation: lean_left,  factual: mixed, tier: 2 }
+  foxnews.com:        { orientation: right,      factual: mixed, tier: 2 }
+  forbes.com:         { orientation: center,     factual: mixed, tier: 2 }
+
+  # --- Tier 3: bassa affidabilità / forte partigianeria (mostrate, mai evidenza) ---
+  breitbart.com:   { orientation: right, factual: low,   tier: 3 }
+  dailymail.co.uk: { orientation: right, factual: low,   tier: 3 }
+  infowars.com:    { orientation: right, factual: low,   tier: 3 }
+  naturalnews.com: { orientation: right, factual: low,   tier: 3 }
+  dailywire.com:   { orientation: right, factual: mixed, tier: 3 }

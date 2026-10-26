@@ -1,0 +1,691 @@
+{
+  "ecosystem": "news",
+  "depth": 20,
+  "rerank_pool": 20,
+  "seed": 42,
+  "runs": [
+    "bm25",
+    "dense",
+    "rrf",
+    "fusion",
+    "rerank_pool"
+  ],
+  "provenance": {
+    "are vaccines safe": {
+      "vaccines-0608": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0332": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0463": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0705": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0703": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0156": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0184": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0185": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0479": [
+        "bm25"
+      ],
+      "vaccines-0056": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0459": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0697": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0397": [
+        "bm25"
+      ],
+      "vaccines-0430": [
+        "bm25"
+      ],
+      "vaccines-0244": [
+        "bm25"
+      ],
+      "vaccines-0237": [
+        "bm25"
+      ],
+      "vaccines-0541": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0555": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0058": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0088": [
+        "bm25"
+      ],
+      "vaccines-0118": [
+        "dense"
+      ],
+      "vaccines-0370": [
+        "dense"
+      ],
+      "vaccines-0669": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0190": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0151": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0631": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0229": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0475": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ]
+    },
+    "vaccine side effects": {
+      "vaccines-0056": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0644": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0669": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0476": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0040": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0036": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0427": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0368": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0463": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0332": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0705": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0703": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0488": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0185": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0184": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0024": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0397": [
+        "bm25"
+      ],
+      "vaccines-0498": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0225": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0631": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0489": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0317": [
+        "dense"
+      ],
+      "vaccines-0229": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0555": [
+        "dense"
+      ],
+      "vaccines-0190": [
+        "dense"
+      ],
+      "vaccines-0287": [
+        "dense"
+      ],
+      "vaccines-0233": [
+        "dense"
+      ],
+      "vaccines-0118": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0692": [
+        "dense"
+      ],
+      "vaccines-0340": [
+        "dense"
+      ],
+      "vaccines-0179": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0230": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0301": [
+        "dense"
+      ],
+      "vaccines-0088": [
+        "rrf"
+      ],
+      "vaccines-0226": [
+        "rrf"
+      ],
+      "vaccines-0608": [
+        "rrf"
+      ],
+      "vaccines-0300": [
+        "rrf"
+      ],
+      "vaccines-0678": [
+        "rrf"
+      ]
+    },
+    "vaccine mandates": {
+      "vaccines-0137": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0124": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0071": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0176": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0541": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0443": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0060": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0413": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0308": [
+        "bm25"
+      ],
+      "vaccines-0446": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0641": [
+        "bm25"
+      ],
+      "vaccines-0251": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0585": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0417": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0226": [
+        "bm25",
+        "rrf"
+      ],
+      "vaccines-0697": [
+        "bm25"
+      ],
+      "vaccines-0032": [
+        "bm25"
+      ],
+      "vaccines-0031": [
+        "bm25"
+      ],
+      "vaccines-0519": [
+        "bm25",
+        "rrf"
+      ],
+      "vaccines-0574": [
+        "bm25"
+      ],
+      "vaccines-0285": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0225": [
+        "dense",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0058": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0284": [
+        "dense",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0606": [
+        "dense"
+      ],
+      "vaccines-0473": [
+        "dense",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0427": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0080": [
+        "dense"
+      ],
+      "vaccines-0426": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0568": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0237": [
+        "dense"
+      ],
+      "vaccines-0244": [
+        "dense"
+      ],
+      "vaccines-0512": [
+        "dense"
+      ],
+      "vaccines-0062": [
+        "dense"
+      ],
+      "vaccines-0348": [
+        "dense"
+      ],
+      "vaccines-0416": [
+        "dense"
+      ],
+      "vaccines-0608": [
+        "rrf"
+      ],
+      "vaccines-0229": [
+        "rrf"
+      ],
+      "vaccines-0328": [
+        "rrf"
+      ],
+      "vaccines-0189": [
+        "rrf"
+      ]
+    },
+    "do vaccines cause autism": {
+      "vaccines-0465": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0399": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0413": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0489": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0411": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0427": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0463": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0332": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0705": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0703": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0659": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0398": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0400": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0230": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0068": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0297": [
+        "bm25"
+      ],
+      "vaccines-0506": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0137": [
+        "bm25"
+      ],
+      "vaccines-0650": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0284": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0417": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0229": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0336": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "vaccines-0109": [
+        "dense"
+      ],
+      "vaccines-0555": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0697": [
+        "dense"
+      ],
+      "vaccines-0056": [
+        "dense",
+        "rrf"
+      ],
+      "vaccines-0631": [
+        "dense"
+      ]
+    }
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "annotators": [
+    "davide",
+    "giuseppe"
+  ],
+  "per_topic": {
+    "nuclear_energy": {
+      "n": 137,
+      "observed_agreement": 0.8394,
+      "kappa": {
+        "unweighted": 0.7436,
+        "linear": 0.8358,
+        "quadratic": 0.9045
+      },
+      "expected_agreement": {
+        "unweighted": 0.3736,
+        "linear": 0.5111,
+        "quadratic": 0.5798
+      },
+      "two_step_conflicts": 0,
+      "confusion": [
+        [
+          55,
+          4,
+          0
+        ],
+        [
+          5,
+          11,
+          13
+        ],
+        [
+          0,
+          0,
+          49
+        ]
+      ],
+      "labels": [
+        "0",
+        "1",
+        "2"
+      ],
+      "marginals": {
+        "a": {
+          "0": 59,
+          "1": 29,
+          "2": 49
+        },
+        "b": {
+          "0": 60,
+          "1": 15,
+          "2": 62
+        }
+      }
+    },
+    "climate_change": {
+      "n": 109,
+      "observed_agreement": 0.7615,
+      "kappa": {
+        "unweighted": 0.587,
+        "linear": 0.7123,
+        "quadratic": 0.8137
+      },
+      "expected_agreement": {
+        "unweighted": 0.4224,
+        "linear": 0.5695,
+        "quadratic": 0.6431
+      },
+      "two_step_conflicts": 1,
+      "confusion": [
+        [
+          55,
+          14,
+          1
+        ],
+        [
+          2,
+          7,
+          9
+        ],
+        [
+          0,
+          0,
+          21
+        ]
+      ],
+      "labels": [
+        "0",
+        "1",
+        "2"
+      ],
+      "marginals": {
+        "a": {
+          "0": 70,
+          "1": 18,
+          "2": 21
+        },
+        "b": {
+          "0": 57,
+          "1": 21,
+          "2": 31
+        }
+      }
+    },
+    "vaccines": {
+      "n": 134,
+      "observed_agreement": 0.7836,
+      "kappa": {
+        "unweighted": 0.657,
+        "linear": 0.7703,
+        "quadratic": 0.8563
+      },
+      "expected_agreement": {
+        "unweighted": 0.3691,
+        "linear": 0.5127,
+        "quadratic": 0.5845
+      },
+      "two_step_conflicts": 1,
+      "confusion": [
+        [
+          54,
+          4,
+          1
+        ],
+        [
+          2,
+          9,
+          17
+        ],
+        [
+          0,
+          5,
+          42
+        ]
+      ],
+      "labels": [
+        "0",
+        "1",
+        "2"
+      ],
+      "marginals": {
+        "a": {
+          "0": 59,
+          "1": 28,
+          "2": 47
+        },
+        "b": {
+          "0": 56,
+          "1": 18,
+          "2": 60
+        }
+      }
+    }
+  },
+  "labels": [
+    "0",
+    "1",
+    "2"
+  ],
+  "overall": {
+    "n": 380,
+    "observed_agreement": 0.7974,
+    "kappa": {
+      "unweighted": 0.6746,
+      "linear": 0.7839,
+      "quadratic": 0.8669
+    },
+    "expected_agreement": {
+      "unweighted": 0.3773,
+      "linear": 0.5189,
+      "quadratic": 0.5898
+    },
+    "two_step_conflicts": 2,
+    "confusion": [
+      [
+        164,
+        22,
+        2
+      ],
+      [
+        9,
+        27,
+        39
+      ],
+      [
+        0,
+        5,
+        112
+      ]
+    ],
+    "labels": [
+      "0",
+      "1",
+      "2"
+    ],
+    "marginals": {
+      "a": {
+        "0": 188,
+        "1": 75,
+        "2": 117
+      },
+      "b": {
+        "0": 173,
+        "1": 54,
+        "2": 153
+      }
+    },
+    "interpretation": "almost perfect"
+  },
+  "coverage": {
+    "judged_a": 380,
+    "judged_b": 380,
+    "common": 380,
+    "only_a": 0,
+    "only_b": 0
+  }
+}

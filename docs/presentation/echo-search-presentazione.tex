@@ -1,0 +1,691 @@
+% ============================================================
+% Echo-Search — Presentazione di progetto
+% Compilare con: latexmk -pdf echo-search-presentazione.tex
+% ============================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds}
+
+% ---------- Palette del progetto (dalla GUI: divergente FAVOR/AGAINST/NEUTRAL) ----------
+\definecolor{echoink}{HTML}{1E293B}
+\definecolor{echoblue}{HTML}{2563EB}
+\definecolor{echoamber}{HTML}{EA7317}
+\definecolor{echoslate}{HTML}{64748B}
+\definecolor{echogreen}{HTML}{16A34A}
+\definecolor{echored}{HTML}{DC2626}
+\definecolor{echobg}{HTML}{F1F5F9}
+
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{structure}{fg=echoblue}
+\setbeamercolor{title}{fg=echoink}
+\setbeamercolor{frametitle}{bg=echoblue, fg=white}
+\setbeamercolor{itemize item}{fg=echoamber}
+\setbeamercolor{itemize subitem}{fg=echoslate}
+\setbeamercolor{block title}{bg=echoblue!15, fg=echoink}
+\setbeamercolor{block body}{bg=echoblue!5, fg=echoink}
+\setbeamercolor{block title alerted}{bg=echored!15, fg=echoink}
+\setbeamercolor{block body alerted}{bg=echored!5, fg=echoink}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamerfont{title}{series=\bfseries, size=\LARGE}
+\setbeamertemplate{itemize item}{\small\textbullet}
+\setbeamertemplate{itemize subitem}{\footnotesize\textendash}
+
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip%
+  \begin{beamercolorbox}[wd=\paperwidth, ht=3.1ex, dp=1.3ex, leftskip=0.35cm]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle%
+  \end{beamercolorbox}%
+}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.4\paperwidth, ht=2.6ex, dp=1.1ex, leftskip=.35cm]{author in head/foot}%
+      \usebeamerfont{footline}\color{white} Davide Cinelli, Giuseppe Cuiuri%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.6\paperwidth, ht=2.6ex, dp=1.1ex, rightskip=.35cm]{title in head/foot}%
+      \usebeamerfont{footline}\color{white}\hfill Echo-Search \quad \insertframenumber\,/\,\inserttotalframenumber%
+    \end{beamercolorbox}%
+  }%
+}
+\setbeamercolor{author in head/foot}{bg=echoink}
+\setbeamercolor{title in head/foot}{bg=echoslate}
+
+% Stili per i diagrammi
+\tikzset{
+  box/.style={draw=echoblue, fill=echoblue!8, rounded corners=3pt, align=center,
+              minimum height=0.95cm, font=\small, thick},
+  io/.style={draw=echoamber, fill=echoamber!12, rounded corners=3pt, align=center,
+             minimum height=0.95cm, font=\small, thick},
+  metric/.style={draw=echogreen, fill=echogreen!14, rounded corners=3pt, align=center,
+                 minimum height=0.95cm, font=\small, thick},
+  arr/.style={-{Latex[length=2.2mm]}, echoslate, very thick},
+  lbl/.style={font=\scriptsize\itshape, color=echoslate},
+}
+
+\title{Echo-Search}
+\author{Davide Cinelli, Giuseppe Cuiuri}
+\date{Luglio 2026}
+
+\begin{document}
+
+% ---------------- TITOLO ----------------
+{%
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\usebeamerfont{title}\color{echoink}\textbf{Echo-Search}}\\[0.3em]
+    {\large\color{echoslate} Un sistema anti--echo--chamber per la ricerca su temi divisivi}\\[1.5em]
+    \begin{tikzpicture}
+      \node[box, minimum width=2.6cm, minimum height=0.7cm] (a) {Media\\\footnotesize news};
+      \node[metric, minimum width=2.4cm, minimum height=0.7cm, right=1.3cm of a] (m) {Stance\\Diversity};
+      \node[io, minimum width=2.6cm, minimum height=0.7cm, right=1.3cm of m] (b) {Social};
+      \draw[arr] (a) -- (m); \draw[arr] (b) -- (m);
+    \end{tikzpicture}\\[1.5em]
+    {\color{echoink}\textbf{Davide Cinelli, Giuseppe Cuiuri}}\\[0.3em]
+    {\color{echoslate}\small Information Retrieval e NLP \; · \; Università della Calabria \; · \; Luglio 2026}
+  \end{center}
+  \vfill
+\end{frame}
+}
+
+% =================================================================
+\begin{frame}{Il problema e la domanda}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Il problema}
+        \small
+        I motori di ricerca ottimizzano la \textbf{pertinenza}, non la
+        \textbf{diversità}. Su un tema divisivo la query porta con sé
+        un'inclinazione, e il ranking la amplifica.
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{La domanda}
+        \small
+        Si può \textbf{misurare} quanto un ecosistema informativo sia omogeneo
+        nelle opinioni, partendo dai documenti stessi?
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.6em}
+  \begin{itemize}\small
+    \item \textbf{Intervento}: i risultati non sono una lista, sono \alert{tre colonne}
+          FAVOR / NEUTRAL / AGAINST affiancate.
+    \item \textbf{Misura}: la \alert{Stance Diversity} --- entropia di Shannon normalizzata
+          sulle stance dei risultati.
+    \item \textbf{Confronto}: la stessa pipeline su \alert{due ecosistemi} (news e social),
+          senza differenze di trattamento.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize\color{echoslate} Temi: energia nucleare · cambiamento climatico · vaccini.}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Architettura: un DAG, non una catena}
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[node distance=0.42cm and 0.62cm]
+    \node[io, minimum width=1.7cm] (corpus) {Corpus\\\footnotesize news \textbar\ social};
+    \node[box, right=of corpus, minimum width=2.3cm] (retr)
+      {Retrieval ibrido\\\footnotesize fusione $\to$ rerank};
+    \node[io, right=of retr, minimum width=1.7cm] (docs) {Documenti\\\footnotesize recuperati};
+
+    % due rami INDIPENDENTI sugli stessi documenti
+    \node[box, above right=0.10cm and 0.8cm of docs, minimum width=2.1cm] (stance)
+      {Stance\\\footnotesize DeBERTa-v3 FT};
+    \node[box, below right=0.10cm and 0.8cm of docs, minimum width=2.1cm] (fact)
+      {Fact-check\\\footnotesize NLI \textbar\ LLM};
+
+    \node[box, right=of stance, minimum width=1.7cm] (bal) {Balance\\\footnotesize 3 colonne};
+    \node[metric, right=of bal, minimum width=1.8cm] (div) {Stance\\Diversity};
+    \node[box, below=0.55cm of div, minimum width=1.8cm] (summ) {Summary\\\footnotesize FLAN-T5};
+    \node[io, right=0.7cm of div, minimum width=1.9cm, minimum height=2.5cm, anchor=north west,
+          xshift=0cm, yshift=0cm] (out) at ([xshift=0.7cm]div.north east)
+      {Dashboard\\\footnotesize 3 colonne\\\footnotesize news $\leftrightarrow$ social};
+
+    \begin{pgfonlayer}{background}
+      \node[draw=echoamber, dashed, thick, rounded corners=4pt,
+            fit=(stance)(fact), inner sep=5pt] (par) {};
+    \end{pgfonlayer}
+    \node[lbl, below=1pt of par.south, color=echoamber, align=center]
+      {rami indipendenti\\sui \emph{medesimi} documenti};
+
+    \draw[arr] (corpus) -- (retr);
+    \draw[arr] (retr) -- (docs);
+    \draw[arr] (docs.east) -- (stance.west);
+    \draw[arr] (docs.east) -- (fact.west);
+    \draw[arr] (stance) -- (bal);
+    \draw[arr] (bal) -- (div);
+    \draw[arr] (bal.south east) -- (summ.west);
+    \draw[arr] (div) -- (out.west|-div);
+    \draw[arr] (summ.east) -- (out.west|-summ);
+    % il fact-check NON alimenta il riassunto: arricchisce i documenti mostrati
+    \draw[arr] (fact) -| (out.south);
+  \end{tikzpicture}}
+
+  \vspace{0.5em}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \scriptsize
+      \textbf{Le dipendenze reali dei dati}
+      \begin{itemize}\scriptsize
+        \item \alert{Stance} e \alert{fact-check} operano \emph{entrambi} sui documenti
+              recuperati, indipendenti fra loro.
+        \item \textbf{Balance} consuma le stance; \textbf{summary} consuma le colonne.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \scriptsize
+      \textbf{Perché la distinzione conta}
+      \begin{itemize}\scriptsize
+        \item il fact-check \alert{non è sul cammino critico}, ed è il modulo più lento
+              ($\approx$4\,s/claim col motore LLM): sovrapponibile.
+        \item la pipeline gira \emph{identica} su ciascun ecosistema.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Corpus a due ecosistemi --- e le sue fonti}
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Media / news}
+        \scriptsize
+        \textbf{CC-News} (\texttt{vblagoje/cc\_news}).\\
+        708\,241 articoli scansionati; filtri per densità di parole chiave e tetto
+        del 15\% per dominio.\\[0.3em]
+        \textbf{403} nucleare · \textbf{800} clima · \textbf{714} vaccini
+      \end{block}
+    \end{column}
+    \begin{column}{0.53\textwidth}
+      \begin{block}{Social (tweet etichettati)}
+        \scriptsize
+        \textbf{Clima} --- \texttt{edwardcqian/}\\\texttt{climate\_change\_sentiment} (GitHub):
+        campo \texttt{message}, label \texttt{sentiment} $\in\{1,-1,0\}$; la classe
+        ``News'' è scartata. \textbf{999} tweet.\\[0.4em]
+        \textbf{Vaccini} --- \texttt{sohampoddar26/}\\\texttt{covid-vax-stance} (GitHub):
+        campo \texttt{tweet}, label \texttt{majority\_label} $\in$
+        \{ProVax, AntiVax, Neutral\}. \textbf{870} tweet.\\[0.4em]
+        Scaricati da \emph{raw} GitHub: \alert{nessuna API Twitter}, quindi
+        riproducibili. Dedup per testo normalizzato.
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.4em}
+  \begin{block}{\small Avvertenza metodologica, dichiarata}
+    \scriptsize
+    Il corpus social è campionato in modo \textbf{stratificato} sulle tre stance
+    (333/333/333 clima, 290/290/290 vaccini): la sua entropia a priori vale
+    \textbf{1,000 per costruzione}. Serviva per valutare lo stance detector sulla classe
+    AGAINST, quasi assente nella cronaca ($\approx$3\%). Ma rende il \emph{confronto} di
+    diversity con le news confondato: si veda la slide dedicata.
+  \end{block}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Motore di ricerca: due stadi}
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[node distance=0.7cm]
+    \node[io, minimum width=2.1cm] (c) {Corpus\\\footnotesize $\sim$800 doc};
+    \node[box, right=of c, minimum width=3.5cm] (s1)
+      {\textbf{Stadio 1} --- recupero\\\footnotesize BM25 $\oplus$ bge+FAISS, min-max\\\footnotesize $\alpha{=}0{,}45$, $\beta{=}0{,}55$};
+    \node[box, right=of s1, minimum width=3.3cm] (s2)
+      {\textbf{Stadio 2} --- pertinenza\\\footnotesize bge-reranker (cross-encoder)};
+    \node[io, right=of s2, minimum width=1.6cm] (o) {Top-$k$};
+    \draw[arr] (c) -- (s1); \draw[arr] (s1) -- node[lbl, above]{50} (s2);
+    \draw[arr] (s2) -- node[lbl, above]{30} (o);
+  \end{tikzpicture}}
+  \vspace{0.7em}
+  \begin{itemize}\small
+    \item \textbf{Complementari, non alternativi}: la fusione \emph{recupera}, il reranker
+          \emph{riordina}. Il tetto del reranker è il recall dello stadio 1.
+    \item \textbf{BM25 con $b = 0{,}60$} (non 0,75): su articoli tutti lunghi, penalizzare la
+          lunghezza scarta proprio i pezzi ricchi di evidenze.
+    \item \textbf{bge è asimmetrico}: prefisso-istruzione solo sulle query, mai sui passaggi.
+    \item Aggregazione \textbf{max-pooling} sui chunk: un documento è rilevante se
+          \emph{almeno un} suo chunk lo è.
+  \end{itemize}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Retrieval --- ablazione su qrels annotati}
+  \centering
+  \small
+  \begin{tabular}{clccc}
+    \toprule
+    \textbf{\#} & \textbf{Sistema} & \textbf{NDCG@10} & \textbf{MAP@20} & \textbf{Recall@20} \\
+    \midrule
+    1 & BM25 puro                  & 0,616 & 0,488 & 0,583 \\
+    2 & Denso puro (bge)           & 0,656 & 0,538 & 0,701 \\
+    3 & Fusione RRF                & 0,653 & 0,535 & 0,671 \\
+    4 & Fusione, $\alpha{=}0{,}45$ & 0,674 & 0,556 & \textbf{0,702} \\
+    5 & Fusione, $\alpha$ tarato (LOTO) & 0,644 & 0,538 & 0,685 \\
+    6 & \textbf{Fusione $+$ reranking} & \textbf{0,715} & \textbf{0,577} & \textbf{0,702} \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.6em}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      \footnotesize
+      \begin{itemize}\footnotesize
+        \item Il \textbf{reranking} è il contributo più grande: $+6{,}1\%$ relativo, a
+              Recall invariato --- riordina, non recupera. Il guadagno viene
+              \alert{quasi tutto dai vaccini} ($0{,}599 \to 0{,}722$): serve dove il primo
+              stadio lascia margine.
+        \item La fusione batte entrambi i rami singoli \emph{e} la baseline RRF.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \footnotesize
+      \textbf{Il divario fra rami si ribalta:}\\[0.2em]
+      \centering\scriptsize
+      \begin{tabular}{lcc}
+        \toprule
+        NDCG@10 & nucleare & clima \\
+        \midrule
+        BM25 puro  & \textbf{0,800} & 0,405 \\
+        Denso puro & 0,737 & \textbf{0,576} \\
+        \bottomrule
+      \end{tabular}\\[0.2em]
+      \raggedright termini tecnici \emph{vs} parafrasi: è la complementarità che motiva la fusione.
+    \end{column}
+  \end{columns}
+  \vspace{0.2em}
+  {\scriptsize\color{echoslate} Metriche sui qrels del primo annotatore; il secondo li replica
+  (v.\ slide successive).}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Retrieval --- tarare $\alpha$ non serve}
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=10.4cm, height=4.6cm,
+      xlabel={\footnotesize peso del ramo sparso $\alpha$},
+      ylabel={\footnotesize NDCG@10},
+      xmin=0.05, xmax=0.95, ymin=0.55, ymax=0.78,
+      xtick={0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9},
+      ytick={0.60,0.65,0.70,0.75},
+      tick label style={font=\scriptsize},
+      label style={font=\scriptsize},
+      legend style={font=\scriptsize, at={(0.5,-0.32)}, anchor=north, legend columns=2, draw=none},
+      grid=major, grid style={echoslate!20},
+      axis line style={echoslate},
+    ]
+      \addplot[echoblue, very thick, mark=*, mark size=1.6]
+        coordinates {(0.1,0.6611)(0.2,0.6726)(0.3,0.6665)(0.4,0.6768)(0.5,0.6694)(0.6,0.6596)(0.7,0.6494)(0.8,0.6403)(0.9,0.6271)};
+      \addlegendentry{annotatore 1}
+      \addplot[echoslate, very thick, dashed, mark=square*, mark size=1.4]
+        coordinates {(0.1,0.7197)(0.2,0.7314)(0.3,0.7249)(0.4,0.7207)(0.5,0.7124)(0.6,0.7096)(0.7,0.6959)(0.8,0.6922)(0.9,0.6719)};
+      \addlegendentry{annotatore 2}
+      \draw[echoamber, thick, dashed] (axis cs:0.45,0.55) -- (axis cs:0.45,0.78);
+      \node[lbl, color=echoamber, anchor=west] at (axis cs:0.47,0.575) {default 0,45};
+    \end{axis}
+  \end{tikzpicture}
+  \vspace{-0.2em}
+  \begin{itemize}\small
+    \item Fra 0,1 e 0,5 la metrica è \textbf{piatta}: escursione di 1,6 punti.
+          L'ottimo oracolo ($\alpha{=}0{,}4$) vale $+0{,}4\%$ sul default.
+    \item I due annotatori collocano l'ottimo in punti diversi (0,4 \emph{vs} 0,2):
+          \alert{è rumore}.
+    \item Tarare in leave-one-topic-out \textbf{peggiora} (0,644 \emph{vs} 0,674): con due
+          temi di training si seleziona quel rumore.
+  \end{itemize}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Qrels: protocollo e accordo fra annotatori}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \footnotesize
+      \textbf{Pool alla Cranfield}, unione di \alert{5 run}: BM25, denso, RRF, fusione,
+      pool del reranker. Profondità 20 $\Rightarrow$ \textbf{380} coppie (query, doc).\\[0.4em]
+      \textbf{143 su 380 --- il 38\% --- vengono da un solo run}: pescare dalla sola
+      fusione le avrebbe rese non giudicate, cioè non rilevanti, falsando l'ablazione a
+      sfavore delle baseline.\\[0.4em]
+      Ordine randomizzato, rango e punteggio \alert{nascosti} all'annotatore
+      (\emph{position bias}).\\[0.4em]
+      \textbf{Doppia annotazione umana in cieco}: fogli separati, nessuna consultazione
+      durante il lavoro --- l'accordo su annotazioni allineate strada facendo non
+      significherebbe nulla.
+    \end{column}
+    \begin{column}{0.56\textwidth}
+      \centering\small
+      \begin{tabular}{lccc}
+        \toprule
+        \textbf{Tema} & $n$ & Accordo & $\boldsymbol{\kappa}$ \textbf{quad.} \\
+        \midrule
+        Nucleare & 137 & 0,839 & \textbf{0,904} \\
+        Clima    & 109 & 0,761 & \textbf{0,814} \\
+        Vaccini  & 134 & 0,784 & \textbf{0,856} \\
+        \midrule
+        \textbf{Totale} & \textbf{380} & 0,797 & \textbf{0,867} \\
+        \bottomrule
+      \end{tabular}\\[0.5em]
+      \footnotesize
+      \emph{Almost perfect} su tutti i temi (non pesato: 0,675). Scala ordinale $\Rightarrow$
+      $\kappa$ a \textbf{pesi quadratici}: quello non pesato tratterebbe ``0 vs 1'' e ``0 vs 2''
+      come lo stesso errore.\\[0.3em]
+      {\scriptsize\color{echoslate} 77 divergenze su 380, di cui \alert{2 a due gradini}: si
+      discute \emph{quanto} un documento serva, non \emph{se} risponda.}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  {\footnotesize\color{echogreen}\textbf{Controllo di robustezza:} le due serie ordinano allo stesso
+  modo \textbf{5 sistemi su 6} ($\tau_b$ di Kendall $=1{,}0$); sui 6 scende a $0{,}733$ e l'unico a
+  spostarsi è la \emph{fusione tarata} --- per $0{,}0006$ di NDCG, cioè proprio il sistema che
+  concludiamo non servire.}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Stance detection}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \footnotesize
+      \textbf{DeBERTa-v3-base}, full fine-tuning su
+      \textbf{VAST $\cup$ SemEval-2016 T6} (16\,097 esempi, \alert{4\,644 target distinti}).
+      Input a coppia nativo \texttt{[CLS] target [SEP] doc [SEP]}.\\[0.4em]
+      Selezione del checkpoint su \textbf{Macro-F1} di validazione, non sulla loss: con classi
+      sbilanciate la loss sacrifica NEUTRAL.\\[0.4em]
+      \textbf{No MoE, no DANN}: il routing non deterministico renderebbe la Macro-F1 non
+      riproducibile. La generalizzazione viene da VAST, a monte.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering\small
+      \begin{tabular}{lcc}
+        \toprule
+        \textbf{Test held-out} & \textbf{Macro-F1} & NEUTRAL \\
+        \midrule
+        Fine-tuned  & \textbf{0,771} & \textbf{0,858} \\
+        Zero-shot NLI & 0,390 & 0,125 \\
+        \bottomrule
+      \end{tabular}\\[0.6em]
+      \begin{tabular}{lc}
+        \toprule
+        \textbf{Generalizzazione} & Macro-F1 \\
+        \midrule
+        VAST (763 target nel test) & 0,768 \\
+        SemEval & 0,741 \\
+        \midrule
+        \textbf{Gold social} (tweet) & \alert{$\sim$0,48} \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+  \end{columns}
+  \vspace{0.5em}
+  \begin{block}{\small Il calo sui social è tutto su una classe}
+    \scriptsize
+    NEUTRAL scende a F1 $0{,}07$--$0{,}23$, mentre FAVOR e AGAINST restano a
+    $0{,}6$--$0{,}7$. Non è un degrado generico: il ``neutro'' sui social è un
+    \textbf{costrutto diverso} (ironia, allusione, contesto conversazionale assente).
+    Servirebbe una ri-annotazione dedicata, non più dati.
+  \end{block}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Stance Diversity --- la metrica firma}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \small
+      \[
+        \text{Div}(p) = -\frac{1}{\log 3}\!\!\sum_{c \in \{\text{F},\text{N},\text{A}\}}\!\! p_c \log p_c \;\in\; [0,1]
+      \]
+      \vspace{-0.4em}
+      \begin{itemize}\footnotesize
+        \item Calcolata sull'\alert{intero pool} riordinato, \textbf{non} sulle colonne
+              mostrate: le colonne sono bilanciate per costruzione, misurarle darebbe
+              una costante travestita da misura.
+        \item Due numeri affiancati nella GUI: la barra = \emph{ciò che il corpus offre},
+              le colonne = \emph{ciò che il sistema mostra}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering\scriptsize
+      \begin{tabular}{lcl}
+        \toprule
+        (F,\,N,\,A) & Div & lettura \\
+        \midrule
+        $(30,0,0)$   & 0,00 & echo chamber perfetta \\
+        $(28,1,1)$   & 0,27 & quasi unanime \\
+        $(20,8,2)$   & 0,73 & minoranza presente \\
+        $(15,10,5)$  & 0,92 & sbilanciato ma reale \\
+        $(10,10,10)$ & 1,00 & bilanciamento perfetto \\
+        \bottomrule
+      \end{tabular}\\[0.5em]
+      \footnotesize\color{echoslate}
+      Invariante per permutazione delle classi e insensibile alla dimensione del
+      campione: per questo l'interfaccia mostra \emph{sempre} anche la distribuzione.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Stance Diversity --- il risultato, e cosa dimostra}
+  \centering\small
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Stance Diversity} & \textbf{News} & \textbf{Social} & $H$ a priori del corpus social \\
+    \midrule
+    Energia nucleare      & 0,545 & --- & --- \\
+    Cambiamento climatico & 0,322 & \textbf{0,621} & 1,000 \\
+    Vaccini               & 0,229 & \textbf{0,600} & 1,000 \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.6em}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{\small Il risultato solido}
+        \scriptsize
+        L'ecosistema \textbf{news} è marcatamente omogeneo \emph{in senso assoluto}, e due
+        misure indipendenti concordano: diversity $0{,}23$--$0{,}55$ sul pool, e
+        $\approx$\textbf{3\%} di documenti AGAINST sull'intero corpus.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{\small Il confronto, invece, è confondato}
+        \scriptsize
+        Il social ha entropia a priori $1{,}000$ \emph{per costruzione}, le news quella
+        naturale. La differenza somma un effetto reale ignoto e un artefatto di
+        campionamento di segno noto (positivo): \textbf{sovrastima} la conclusione.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  {\footnotesize\textbf{Contromisura proposta:} \emph{diversity lift} $=
+  H(p_{\text{pool}})/H(p_{\text{corpus}})$, invariante rispetto alla distribuzione a priori.
+  Definita, non ancora calcolata.}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Fact-checking: due motori, uno stack}
+  \centering
+  \begin{tikzpicture}[node distance=0.6cm]
+    \node[io, minimum width=1.9cm] (cl) {Claim\\\footnotesize spaCy};
+    \node[box, right=of cl, minimum width=3.2cm] (ev)
+      {Evidenze da \textbf{KB Wikipedia}\\\footnotesize 1589 articoli, retrieval bge};
+    \node[box, right=of ev, minimum width=2.4cm, fill=echored!8, draw=echored] (gate)
+      {\textbf{Cancello}\\\footnotesize coseno $\ge 0{,}62$};
+    \node[box, above right=0.05cm and 0.8cm of gate, minimum width=2.3cm] (nli)
+      {\textbf{NLI}\\\footnotesize DeBERTa-fever};
+    \node[box, below right=0.05cm and 0.8cm of gate, minimum width=2.3cm] (llm)
+      {\textbf{LLM}\\\footnotesize qwen2.5:7b};
+    \draw[arr] (cl) -- (ev); \draw[arr] (ev) -- (gate);
+    \draw[arr] (gate.east) -- (nli.west); \draw[arr] (gate.east) -- (llm.west);
+  \end{tikzpicture}
+  \vspace{0.5em}
+  \begin{itemize}\small
+    \item \textbf{Prime due fasi condivise, terza intercambiabile}: cambia \emph{solo} il
+          motore di verdetto $\Rightarrow$ la differenza misurata è attribuibile ad esso.
+    \item \textbf{Il cancello di pertinenza} evita i falsi REFUTED: su una KB tematica il
+          retrieval restituisce \emph{sempre} qualcosa, e l'NLI legge ``diverso'' come
+          ``contraddittorio''.
+    \item \textbf{Grounding puro} per l'LLM: giudica solo sulle evidenze, mai sulla
+          conoscenza parametrica. Tutto locale, nessuna API.
+  \end{itemize}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Fact-checking --- NLI \emph{vs} LLM a parità di evidenze}
+  \centering\small
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{ClimateFEVER, claim-level} ($n{=}1381$) & Acc & \textbf{Macro-F1} & SUP & REF & NEI \\
+    \midrule
+    NLI (DeBERTa-v3-base-mnli-fever-anli) & 0,393 & 0,350 & 0,065 & 0,479 & 0,507 \\
+    \textbf{LLM (qwen2.5:7b, grounding puro)} & \textbf{0,667} & \textbf{0,640} & \textbf{0,753} & \textbf{0,565} & \textbf{0,601} \\
+    \midrule
+    $\Delta$ relativo & $+70\%$ & $\boldsymbol{+83\%}$ & $\boldsymbol{+1058\%}$ & $+18\%$ & $+19\%$ \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.7em}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \footnotesize
+      \textbf{Il profilo si ribalta.} L'NLI era pessimo nel \emph{confermare}
+      (SUP 0,065) e discreto nel confutare; l'LLM diventa il più forte proprio lì e trova
+      il suo punto debole in REFUTED.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \footnotesize
+      Errori \alert{complementari}, non uniformemente migliori. Riconoscere una conferma
+      richiede inferenza a più passi; una contraddizione è spesso incompatibilità locale.\\[0.3em]
+      \textbf{Costo:} $\approx$4\,s/claim contro decine di ms.
+    \end{column}
+  \end{columns}
+  \vspace{0.2em}
+  {\scriptsize\color{echoslate} Ablazione: la variante \emph{large} dell'NLI dà $+1{,}4$ punti
+  di accuracy a costo triplo $\Rightarrow$ si adotta la \emph{base}.}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Sintesi e interfaccia}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \footnotesize
+      \textbf{Summarization} --- FLAN-T5-base, strategia
+      \emph{extract-then-abstract}: BM25 a livello di frase riduce l'input sotto la finestra
+      di contesto, il modello riscrive.\\[0.3em]
+      Beam search puro, \texttt{do\_sample=False}: lo stesso cluster deve produrre sempre lo
+      stesso riassunto.\\[0.3em]
+      {\color{echoslate}Non valutata: mancano riassunti di riferimento. È una baseline
+      ragionevole, non un componente validato.}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \footnotesize
+      \textbf{Dashboard} (Streamlit)
+      \begin{itemize}\footnotesize
+        \item Tre colonne affiancate, palette divergente.
+        \item Barra di diversity segmentata: punteggio \emph{e} proporzioni del pool.
+        \item Schede per ecosistema: il confronto news$\leftrightarrow$social è un clic.
+        \item \textbf{Soft-filter}: selezionando una posizione la colonna si allarga,
+              le altre \alert{non scompaiono} --- un filtro rigido ricostruirebbe
+              l'echo chamber.
+        \item Card espandibili con claim, verdetto e link alle fonti.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  {\footnotesize\color{echoslate} Query canoniche \textbf{precalcolate}: la demo è istantanea
+  e non richiede GPU a runtime (il motore LLM costa minuti per ecosistema).}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Quadro d'insieme}
+  \centering\footnotesize
+  \begin{tabular}{llll}
+    \toprule
+    \textbf{Componente} & \textbf{Benchmark} & \textbf{Risultato} & \textbf{Stato} \\
+    \midrule
+    Retrieval, ablazione 6 sistemi & qrels propri (380) & NDCG@10 \textbf{0,715} & valutato \\
+    Accordo annotatori & 2 umani, 380 coppie & $\kappa$ quad. \textbf{0,867} & \emph{almost perfect} \\
+    Stance detection & VAST $\cup$ SemEval & Macro-F1 \textbf{0,771} & valutato \\
+    Stance, cross-dataset & VAST / SemEval & 0,768 / 0,741 & generalizza \\
+    Stance, dominio social & gold social & $\sim$0,48 & calo analizzato \\
+    Fact-check NLI & ClimateFEVER & Macro-F1 0,350 & valutato \\
+    Fact-check LLM & ClimateFEVER & Macro-F1 \textbf{0,640} & controllato \\
+    Stance Diversity & query canoniche & 0,229--0,621 & confondato \\
+    Summarization & --- & --- & non valutabile \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+
+  {\footnotesize Tutto entro \textbf{6\,GB} di VRAM, \textbf{offline}, con 174 test
+  automatici e manifest con hash SHA-256.}
+\end{frame}
+
+% =================================================================
+\begin{frame}{Limiti dichiarati e prossimi passi}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{alertblock}{\small Limiti}
+        \scriptsize
+        \begin{itemize}\scriptsize
+          \item \textbf{Confronto news/social confondato} dal campionamento stratificato.
+          \item \textbf{11 query}: bastano a ordinare i sistemi, non a tarare $\alpha$ né a
+                dare intervalli di confidenza.
+          \item \textbf{Qrels non riconciliati}: le 77 divergenze fra i due annotatori non
+                sono state adjudicate in un'unica serie.
+          \item NEUTRAL è un costrutto instabile fuori dai benchmark.
+          \item KB statica: claim recenti $\to$ evidenza insufficiente.
+          \item Summarization non valutata.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{\small Prossimi passi}
+        \scriptsize
+        \begin{itemize}\scriptsize
+          \item \textbf{Diversity lift}: chiude il confondimento principale, costa una
+                passata offline dello stance detector.
+          \item \textbf{Più query} (40--50) per intervalli di confidenza e test di
+                significatività.
+          \item \textbf{Adjudicare le divergenze} fra i due annotatori in una serie
+                consolidata.
+          \item \textbf{Combinare i due motori} di fact-check: i profili di errore sono
+                complementari.
+          \item Persistenza dell'indice KB; parallelizzazione del ramo fact-check.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =================================================================
+{%
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \vfill
+  \centering
+  {\usebeamerfont{title}\color{echoink}\textbf{Echo-Search}}\\[0.8em]
+  \begin{minipage}{0.82\textwidth}
+    \small\color{echoink}
+    Tre cose che il progetto lascia:
+    \begin{itemize}\small
+      \item l'echo chamber diventa una \textbf{grandezza misurabile} sui contenuti, non
+            sulle relazioni --- con le condizioni sotto cui il confronto è lecito rese
+            esplicite;
+      \item a parità di evidenze, un LLM locale che \textbf{ragiona} supera un NLI
+            specializzato proprio dove questo falliva, con errori \emph{complementari};
+      \item sul retrieval, il \textbf{secondo stadio} vale dieci volte qualunque taratura
+            di iperparametri --- e i default motivati dal dominio erano già ottimi.
+    \end{itemize}
+  \end{minipage}\\[1.2em]
+  {\color{echoslate}\small Davide Cinelli \quad\textbar\quad Giuseppe Cuiuri}
+  \vfill
+\end{frame}
+}
+
+\end{document}

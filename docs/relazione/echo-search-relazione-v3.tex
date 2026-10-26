@@ -1,0 +1,1983 @@
+% ============================================================
+% Echo-Search — Relazione di progetto (v3)
+% Compilare con: latexmk -pdf echo-search-relazione-v3.tex
+% ============================================================
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.18}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds}
+\usepackage{listings}
+\usepackage{enumitem}
+\setlist{itemsep=1pt, topsep=3pt, parsep=0pt}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{echoblue}{HTML}{2563EB}
+\definecolor{echoamber}{HTML}{EA7317}
+\definecolor{echoslate}{HTML}{64748B}
+\definecolor{echogreen}{HTML}{16A34A}
+\definecolor{echored}{HTML}{DC2626}
+\definecolor{codebg}{HTML}{F4F6F9}
+
+\lstset{basicstyle=\ttfamily\scriptsize, backgroundcolor=\color{codebg},
+  breaklines=true, frame=single, rulecolor=\color{echoslate!40},
+  columns=fullflexible, keepspaces=true, xleftmargin=3pt, xrightmargin=3pt,
+  literate={à}{{\`a}}1 {è}{{\`e}}1 {é}{{\'e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1}
+
+\tikzset{
+  box/.style={draw=echoblue, fill=echoblue!7, rounded corners=2pt, align=center,
+              minimum height=0.8cm, font=\small, thick},
+  io/.style={draw=echoamber, fill=echoamber!12, rounded corners=2pt, align=center,
+             minimum height=0.8cm, font=\small, thick},
+  metric/.style={draw=echogreen, fill=echogreen!12, rounded corners=2pt, align=center,
+                 minimum height=0.8cm, font=\small, thick},
+  arr/.style={-{Latex[length=1.8mm]}, echoslate, thick},
+  lbl/.style={font=\scriptsize\itshape, color=echoslate},
+}
+
+\newcommand{\avvertenza}[2]{%
+  \begin{center}
+  \fcolorbox{echored!50}{echored!5}{%
+    \begin{minipage}{0.94\textwidth}
+    \small\textbf{#1}\\[2pt] #2
+    \end{minipage}}
+  \end{center}}
+
+\newcommand{\ES}{\textbf{Echo-Search}}
+
+% Capitoli più compatti
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\LARGE\bfseries}{\thechapter.}{12pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-18pt}{18pt}
+
+\begin{document}
+
+% ---------------- FRONTESPIZIO ----------------
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+{\Huge\bfseries Echo-Search\par}
+\vspace{0.5cm}
+{\Large Un sistema anti--echo--chamber per la ricerca\\ su temi divisivi\par}
+\vspace{1.6cm}
+{\large Relazione di progetto\par}
+\vspace{0.2cm}
+{\normalsize Information Retrieval e Natural Language Processing\par}
+\vspace{1.8cm}
+\begin{tikzpicture}
+  \node[box, minimum width=2.6cm] (a) {Media\\\footnotesize news};
+  \node[metric, minimum width=2.4cm, right=1.3cm of a] (m) {Stance\\Diversity};
+  \node[io, minimum width=2.6cm, right=1.3cm of m] (b) {Social};
+  \draw[arr] (a) -- (m); \draw[arr] (b) -- (m);
+\end{tikzpicture}
+\vfill
+{\large Davide Cinelli \quad\textbar\quad Giuseppe Cuiuri\par}
+\vspace{0.3cm}
+{\normalsize Università della Calabria --- A.A. 2025/2026\par}
+\vspace{0.3cm}
+{\large Luglio 2026\par}
+\end{titlepage}
+
+\tableofcontents
+
+% =================================================================
+\chapter{Introduzione}\label{cap:intro}
+
+\section{Contesto e problema}
+Il dibattito pubblico sui temi controversi si svolge sempre più in ambienti informativi che,
+per effetto combinato della personalizzazione algoritmica e dell'omofilia sociale, espongono
+l'utente prevalentemente a contenuti concordi con le sue opinioni pregresse --- il fenomeno
+noto come \emph{echo chamber}, o \emph{filter bubble} nella sua variante
+algoritmica~\cite{pariser,cinelli}. Su temi ad alto contenuto tecnico e forte carica
+valoriale come l'energia nucleare, il cambiamento climatico e la vaccinazione, la formazione
+di un'opinione informata richiederebbe accesso bilanciato alle argomentazioni di entrambe le
+parti, corredate da evidenze verificabili.
+
+Gli strumenti di ricerca, però, sono ottimizzati per la \emph{pertinenza} e non per la
+\emph{diversità}. Dato un corpus $\mathcal{D}$, una query $q$ e un \emph{target} di dibattito
+$t$, un motore classico restituisce
+\begin{equation}
+R_k(q) = \operatorname*{arg\,top-}k_{\,d \in \mathcal{D}} \; \text{rel}(q, d),
+\end{equation}
+e nulla in questa formulazione vincola la distribuzione delle posizioni
+$s(d,t)$ all'interno di $R_k(q)$, dove
+$s(d,t) \in \{\textsc{favor}, \textsc{neutral}, \textsc{against}\}$: se fra i documenti più
+pertinenti ce ne sono 18 favorevoli e 2 contrari, il sistema ne mostra 18 e 2. Poiché la query stessa porta con sé un'inclinazione implicita
+(``\emph{risks} of nuclear energy'' e ``\emph{benefits} of nuclear energy'' pescano da regioni
+diverse del corpus), il ranking per pertinenza è un amplificatore involontario dell'echo
+chamber.
+
+Il problema ha due livelli, che questo lavoro tiene distinti. Al livello
+dell'\textbf{esposizione} --- quali documenti vengono mostrati --- è possibile intervenire,
+diversificando il result set. Al livello dell'\textbf{ambiente} --- quali documenti esistono
+nel corpus, e con quale distribuzione di posizioni --- non c'è intervento possibile: c'è una
+proprietà da misurare. \ES{} si colloca all'intersezione: sostituisce l'output piatto con tre
+colonne di prospettiva contrapposta, e misura contestualmente quanto plurale sia il materiale
+che il corpus rende disponibile per quella query.
+
+\section{Domande di ricerca}\label{sec:rq}
+\begin{description}[leftmargin=1.5cm,style=nextline]
+  \item[RQ1 --- Misurabilità] È possibile operazionalizzare l'omogeneità di opinione di un
+        insieme di risultati in una metrica scalare, interpretabile e confrontabile fra corpora?
+  \item[RQ2 --- Confronto fra ecosistemi] L'ecosistema social e quello dei media differiscono,
+        sugli stessi temi, per diversità di stance del materiale che rendono recuperabile? In
+        quale direzione?
+  \item[RQ3 --- Motore di verdetto] Nel fact-checking \emph{a parità di evidenze}, un LLM
+        generalista di taglia contenuta ($\le$10B) che \emph{ragiona} è competitivo con un
+        classificatore NLI specializzato e FEVER-tuned?
+  \item[RQ4 --- Fattibilità] È possibile realizzare l'intera pipeline in modo locale, offline
+        e riproducibile entro 6\,GB di memoria video?
+\end{description}
+
+Anticipiamo il grado di risposta raggiunto: RQ1, RQ3 e RQ4 ricevono risposta affermativa e
+documentata; RQ2 riceve una risposta \emph{condizionata}, la cui validità interna è limitata
+dal modo in cui i due corpora sono stati costruiti --- limite analizzato nella
+Sezione~\ref{sec:validita-interna} e non nascosto.
+
+\section{Contributi}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Una pipeline simmetrica a due ecosistemi}: la medesima catena, con gli stessi
+        modelli e parametri, su due corpora indicizzati separatamente. È la simmetria a rendere
+        confrontabili i risultati.
+  \item \textbf{Una metrica di echo chamber}, la \emph{Stance Diversity}, con l'analisi delle
+        sue proprietà e delle condizioni sotto cui il confronto fra due valori è lecito.
+  \item \textbf{Un fact-checker locale a due motori intercambiabili}: stessa knowledge base,
+        stesso recupero, stesso cancello di pertinenza; cambia solo il modulo che emette il
+        verdetto. È questo isolamento a rendere il confronto un esperimento controllato.
+  \item \textbf{Uno stance detector fine-tunato}, valutato su benchmark citabili, in
+        \emph{cross-dataset} e su un gold set nel dominio applicativo.
+  \item \textbf{Una valutazione del retrieval su qrels propri}, doppiamente annotati da due
+        persone in cieco, con ablazione a sei sistemi e misura di quanto l'ordinamento dipenda da
+        chi ha giudicato.
+\end{enumerate}
+
+\section{Che cosa questo lavoro non è}
+Non è un contributo modellistico: nessuna architettura nuova, nessuna funzione di perdita
+nuova; l'unico addestramento è un fine-tuning supervisionato standard. Non è uno studio
+sociologico sulla polarizzazione: i corpora sono campioni di dimensione limitata, scelti per
+rendere il sistema eseguibile e riproducibile, non per essere rappresentativi dell'ecosistema
+mediatico. Le conclusioni sulla differenza fra media e social vanno lette come proprietà
+\emph{dei corpora costruiti}. Non è infine un sistema di moderazione: il registro di
+credibilità delle fonti è usato per descrivere i dati, mai come filtro automatico sui
+risultati mostrati.
+
+\section{Struttura}
+Il Capitolo~\ref{cap:sota} richiama il background necessario a giustificare le scelte. Il
+Capitolo~\ref{cap:sistema} descrive architettura e implementazione. Il
+Capitolo~\ref{cap:dati} documenta i dati --- capitolo cruciale, perché è lì che nascono sia i
+risultati sia i loro limiti. Il Capitolo~\ref{cap:metodo} formalizza la metodologia; il
+Capitolo~\ref{cap:protocollo} definisce il protocollo sperimentale \emph{prima} di vederne i
+risultati, che sono nel Capitolo~\ref{cap:risultati}. Il Capitolo~\ref{cap:discussione}
+discute findings, errori e minacce alla validità; il Capitolo~\ref{cap:conclusioni} conclude.
+
+% =================================================================
+\chapter{Background}\label{cap:sota}
+
+\section{Echo chamber e diversità dei risultati}
+Il termine \emph{echo chamber} descrive un ambiente in cui le convinzioni sono amplificate per
+ripetizione, con esposizione limitata a punti di vista alternativi; la variante \emph{filter
+bubble}~\cite{pariser} enfatizza la componente algoritmica. Sul piano empirico l'ambito
+computazionale ha proceduto su due direttrici quasi sempre separate: la \emph{misura} della
+polarizzazione --- tipicamente su grafi di interazione sociale, come in Cinelli et
+al.~\cite{cinelli} --- e l'\emph{intervento}, cioè l'esposizione deliberata a contenuti
+discordanti. Misurare la polarizzazione direttamente sui \emph{contenuti testuali}, tramite
+stance detection, è una strada meno battuta e più direttamente collegabile a un motore di
+ricerca.
+
+La diversificazione dei risultati ha una tradizione consolidata nell'IR, nata però per un
+problema diverso: l'ambiguità della query. In \emph{Maximal Marginal Relevance}~\cite{mmr} si
+premia la rilevanza e si penalizza la ridondanza \emph{testuale}; approcci successivi
+esplicitano i sotto-argomenti da coprire. La differenza rispetto a \ES{} è sostanziale: là la
+diversità è dissimilarità nello spazio delle rappresentazioni, qui è definita \emph{a priori}
+e semanticamente --- le tre stance. Ne consegue che la misura è direttamente interpretabile e
+confrontabile fra corpora, ma anche che la sua qualità dipende da quella del classificatore di
+stance, con un errore di misura di cui va reso conto.
+
+\section{Information Retrieval}
+
+\subsection{Retrieval sparso}
+La famiglia \emph{Best Matching} culmina in BM25~\cite{bm25}, tuttora una baseline difficile
+da battere:
+\begin{equation}\label{eq:bm25}
+\text{BM25}(D,Q) = \sum_{t \in Q} \text{IDF}(t) \cdot
+\frac{f(t,D)\,(k_1 + 1)}{f(t,D) + k_1\left(1 - b + b\,\dfrac{|D|}{\text{avgdl}}\right)} .
+\end{equation}
+I due iperparametri hanno interpretazioni distinte e non intercambiabili. Il parametro $k_1$
+governa la \emph{saturazione} della term-frequency: per $k_1 \to 0$ il contributo di un
+termine diventa binario, per $k_1$ grande cresce quasi linearmente. Il parametro $b \in [0,1]$
+governa la \emph{normalizzazione per lunghezza}: con $b=0$ la lunghezza è ignorata, con $b=1$
+la normalizzazione è piena. Il default $b = 0{,}75$ è tarato su collezioni web eterogenee;
+questa osservazione motiva la scelta adottata nella Sezione~\ref{sec:metodo-retrieval}. Il
+limite strutturale di BM25 è il \emph{vocabulary mismatch}: essendo lessicale, non riconosce
+che ``meltdown'' e ``nuclear accident'' denotano lo stesso evento --- limite tanto più
+rilevante su un dominio argomentativo, dove la stessa posizione si esprime con lessici molto
+diversi a seconda dell'orientamento della fonte.
+
+\subsection{Retrieval denso e indici vettoriali}
+I metodi \emph{dense} proiettano i testi in uno spazio semantico tramite \emph{bi-encoder}:
+query e documento sono codificati \emph{separatamente} e la rilevanza è approssimata dalla
+similarità coseno, con addestramento per \emph{contrastive learning} su grandi collezioni di
+coppie~\cite{dpr}. Il vantaggio è decisivo: i documenti si codificano offline una volta sola.
+Il modello adottato, \emph{bge-base-en-v1.5}~\cite{bge}, è \emph{asimmetrico}: prevede un
+prefisso-istruzione sulla query e nessun prefisso sui passaggi. Ignorare l'asimmetria degrada
+silenziosamente il recupero senza generare alcun errore --- difetto insidioso e frequente.
+
+Su vettori L2-normalizzati il prodotto interno coincide con la similarità coseno, e librerie
+come FAISS~\cite{faiss} offrono indici \emph{esatti} o \emph{approssimati}. Per collezioni
+dell'ordine di $10^3$--$10^4$ vettori l'indice esatto è preferibile: il costo è trascurabile e
+si ottiene in cambio la riproducibilità perfetta dei risultati, requisito non negoziabile in
+un contesto di valutazione.
+
+Il limite dei bi-encoder è l'assenza di interazione fra query e documento, che il secondo
+stadio è chiamato a recuperare.
+
+\subsection{Retrieval ibrido e reranking}
+Poiché segnale lessicale e semantico sono complementari, lo stato dell'arte li combina, con due
+strategie dalle proprietà diverse. La \emph{fusione di punteggi} normalizza e combina
+linearmente,
+\begin{equation}\label{eq:fusion}
+\text{score}(d) = \alpha\,\widetilde{s}_{\text{sparse}}(d) + \beta\,\widetilde{s}_{\text{dense}}(d),
+\qquad \alpha + \beta = 1,
+\end{equation}
+conservando l'informazione sulla \emph{magnitudo} delle differenze, al prezzo di dipendere
+dalla normalizzazione e di richiedere la taratura di $\alpha$. La \emph{fusione di ranghi}, di
+cui \emph{Reciprocal Rank Fusion}~\cite{rrf} è il rappresentante più usato,
+\begin{equation}\label{eq:rrf}
+\text{RRF}(d) = \sum_{r \in \mathcal{R}} \frac{1}{k_{\text{rrf}} + \text{rank}_r(d)},
+\end{equation}
+è robusta e priva di parametri, ma perde quell'informazione: due documenti in posizione 1 e 2
+contribuiscono quasi allo stesso modo, che siano separati da un abisso o da un niente.
+
+Un secondo stadio di \emph{reranking} affina l'ordinamento con un \emph{cross-encoder}, che
+riceve query e documento \emph{insieme} e ne modella l'interazione con attenzione
+completa~\cite{sbert}: sistematicamente più preciso del bi-encoder, ma con costo $O(N)$ per
+query e non precomputabile. Ne discende lo schema \emph{retrieve-then-rerank}: uno stadio
+economico e ad alto recall su tutto il corpus, seguito da uno costoso e preciso su poche
+decine di candidati. I due stadi non sono alternativi: la fusione \emph{recupera}, il reranker
+\emph{riordina}, e il tetto di prestazione del secondo è fissato dal recall del primo.
+
+\subsection{Valutazione}
+Il paradigma dominante resta quello di Cranfield: una collezione, un insieme di query e un
+insieme di \emph{giudizi di rilevanza} (\emph{qrels}). Poiché giudicare l'intero corpus è
+impraticabile, si ricorre al \emph{pooling}: si uniscono i primi $k$ risultati di tutti i
+sistemi in esame e si giudica solo l'unione, assumendo non rilevanti i documenti mai entrati
+nel pool. Le metriche standard sono il \emph{Normalized Discounted Cumulative Gain}
+\begin{equation}\label{eq:ndcg}
+\text{DCG@}k = \sum_{i=1}^{k} \frac{\text{rel}_i}{\log_2(i+1)}, \qquad
+\text{NDCG@}k = \frac{\text{DCG@}k}{\text{IDCG@}k},
+\end{equation}
+che premia i rilevanti nelle prime posizioni ed è definito per giudizi graduati; la \emph{Mean
+Average Precision}; e il \emph{Recall@k}, che è la metrica corretta per valutare uno stadio di
+generazione dei candidati. L'accordo fra annotatori si riporta convenzionalmente con il
+$\kappa$ di Cohen~\cite{cohen}.
+
+\section{Stance detection}
+La stance detection classifica la posizione di un testo verso un \emph{target} in FAVOR,
+AGAINST, NEUTRAL. Va distinta dalla \emph{sentiment analysis}: un testo può esprimere
+sentimento negativo ed essere a favore del target (``è \emph{tragico} che la disinformazione
+stia rallentando le vaccinazioni''). I benchmark di riferimento sono \textbf{SemEval-2016
+Task~6}~\cite{semeval}, su tweet e cinque target predefiniti, e \textbf{VAST}~\cite{vast}, con
+migliaia di target diversi e quindi riferimento per la generalizzazione \emph{cross-target}.
+L'approccio dominante fine-tuna transformer pre-addestrati su input a coppia
+\texttt{[CLS] target [SEP] testo [SEP]}: la codifica a coppia è preferibile alla
+concatenazione manuale perché sfrutta i \emph{token type embeddings} nativi.
+
+Tre difficoltà sono documentate in letteratura e si ripresentano puntualmente in questo
+lavoro: la \textbf{dipendenza dal target} (la stringa scelta per rappresentarlo influenza
+sensibilmente le prestazioni); la classe \textbf{NEUTRAL}, notoriamente la peggio classificata
+perché raccoglie fenomeni eterogenei --- testi informativi, ambigui, ironici, che riportano
+posizioni altrui; e la \textbf{sensibilità al dominio}. Un'alternativa senza addestramento è
+l'uso di modelli NLI in \emph{zero-shot}~\cite{yin}, adottata qui come baseline.
+
+\section{Fact-checking e Natural Language Inference}
+La verifica automatica di affermazioni è convenzionalmente scomposta in tre fasi, secondo
+l'architettura di FEVER~\cite{fever}: estrazione della \emph{claim}, recupero delle
+\emph{evidenze}, formulazione del \emph{verdetto}. La scomposizione ha un pregio metodologico:
+rende ogni fase valutabile in isolamento, evitando che un errore di recupero venga attribuito
+al motore di verdetto.
+
+La terza fase è tipicamente modellata come \emph{Natural Language Inference}: data una coppia
+(premessa, ipotesi) si predice se la prima \emph{implica}, \emph{contraddice} o è
+\emph{neutrale} rispetto alla seconda, con corrispondenza diretta ai verdetti
+SUPPORTED / REFUTED / NOT\_ENOUGH\_INFO. \textbf{ClimateFEVER}~\cite{climatefever} adatta il
+paradigma a claim climatiche reali: benchmark sensibilmente più difficile di FEVER, perché le
+claim sono formulate in linguaggio non controllato, spesso vaghe o parzialmente vere.
+
+Più recentemente i \emph{Large Language Model} vengono impiegati come motore di verdetto,
+sfruttandone la capacità inferenziale generale al posto della specializzazione. Il rischio noto
+è che il modello risponda sulla base della conoscenza parametrica anziché delle evidenze
+fornite, il che invaliderebbe il confronto con l'NLI e aprirebbe la porta alle allucinazioni;
+la contromisura standard è il \emph{grounding} esplicito nel prompt. Il paradigma generale del
+recupero di evidenze a supporto della generazione è quello della \emph{Retrieval-Augmented
+Generation}~\cite{rag}.
+
+\section{Misure di diversità}\label{sec:sota-diversity}
+Per quantificare l'eterogeneità di una distribuzione categoriale lo strumento canonico è
+l'\textbf{entropia di Shannon}~\cite{shannon}, $H(p) = -\sum_c p_c \log p_c$, massima e pari a
+$\log K$ per la distribuzione uniforme e nulla per una distribuzione degenere. La
+normalizzazione $H(p)/\log K$ produce un valore in $[0,1]$ interpretabile e confrontabile.
+Alternative possibili sono l'indice di Gini-Simpson, che pesa meno le categorie rare, e i
+numeri di Hill. L'entropia normalizzata è preferibile qui perché è la scelta più diffusa e
+quindi confrontabile con la letteratura, ha un'interpretazione informazionale precisa, e
+penalizza fortemente le distribuzioni degeneri --- che è esattamente il comportamento
+desiderato quando l'obiettivo è segnalare un'echo chamber.
+
+Va però sottolineato un punto che il Capitolo~\ref{cap:discussione} riprende: l'entropia è
+funzione della sola distribuzione e non sa nulla di \emph{come} quella distribuzione sia stata
+generata. Confrontare $H(p_1)$ e $H(p_2)$ è informativo solo se i due campioni provengono da
+procedure comparabili. Questa condizione, apparentemente ovvia, è il punto delicato dell'intero
+lavoro.
+
+\section{Posizionamento}
+\ES{} non propone nuovi modelli: il suo contributo è di \emph{sistema} e di \emph{metodo di
+misura}. I due elementi di originalità sono l'operazionalizzazione dell'echo chamber come
+metrica scalare comparabile fra ecosistemi, calcolata sui contenuti e non sulle relazioni
+sociali; e un banco di prova per il fact-checking in cui il motore di verdetto è l'\emph{unica}
+variabile che cambia, il che consente di attribuire la differenza di prestazione al motore e
+non alla catena di recupero.
+
+% =================================================================
+\chapter{Il sistema}\label{cap:sistema}
+
+\section{Visione d'insieme}
+Il sistema è un motore di retrieval a due stadi seguito da moduli NLP che arricchiscono i
+documenti recuperati (Figura~\ref{fig:arch}). Il principio guida è la \textbf{simmetria fra
+ecosistemi}: la medesima pipeline, con gli stessi modelli e iperparametri, viene eseguita su
+ciascuno dei due ecosistemi (media/news e social); è il \emph{confronto} fra i due blocchi a
+costituire l'output di ricerca.
+
+La simmetria non è un dettaglio estetico ma un requisito sperimentale: se i due ecosistemi
+fossero trattati diversamente, ogni differenza osservata sarebbe attribuibile tanto
+all'ecosistema quanto al trattamento. Vincolare la pipeline a essere identica elimina per
+costruzione un'intera classe di confondimenti --- ne resta un'altra, di natura diversa,
+discussa nella Sezione~\ref{sec:validita-interna}.
+
+\begin{figure}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=0.42cm and 0.6cm]
+  \node[io, minimum width=1.7cm] (corpus) {Corpus\\\footnotesize news \textbar\ social};
+  \node[box, right=of corpus, minimum width=2.2cm] (retr)
+    {Retrieval ibrido\\\footnotesize fusione $\to$ rerank};
+  \node[io, right=of retr, minimum width=1.7cm] (docs) {Documenti\\\footnotesize recuperati};
+  \node[box, above right=0.10cm and 0.8cm of docs, minimum width=2.1cm] (stance)
+    {Stance\\\footnotesize DeBERTa-v3 FT};
+  \node[box, below right=0.10cm and 0.8cm of docs, minimum width=2.1cm] (fact)
+    {Fact-check\\\footnotesize NLI \textbar\ LLM};
+  \node[box, right=of stance, minimum width=1.7cm] (bal) {Balance\\\footnotesize 3 colonne};
+  \node[metric, right=of bal, minimum width=1.8cm] (div) {Stance\\Diversity};
+  \node[box, below=0.5cm of div, minimum width=1.8cm] (summ) {Summary\\\footnotesize FLAN-T5};
+  \node[io, minimum width=1.9cm, minimum height=2.4cm, anchor=north west] (out)
+    at ([xshift=0.7cm]div.north east)
+    {Dashboard\\\footnotesize 3 colonne\\\footnotesize news $\leftrightarrow$ social};
+  \begin{pgfonlayer}{background}
+    \node[draw=echoamber, dashed, thick, rounded corners=4pt,
+          fit=(stance)(fact), inner sep=5pt] (par) {};
+  \end{pgfonlayer}
+  \node[lbl, below=1pt of par.south, color=echoamber, align=center]
+    {rami indipendenti\\sui \emph{medesimi} documenti};
+  \draw[arr] (corpus) -- (retr);
+  \draw[arr] (retr) -- (docs);
+  \draw[arr] (docs.east) -- (stance.west);
+  \draw[arr] (docs.east) -- (fact.west);
+  \draw[arr] (stance) -- (bal);
+  \draw[arr] (bal) -- (div);
+  \draw[arr] (bal.south east) -- (summ.west);
+  \draw[arr] (div) -- (out.west|-div);
+  \draw[arr] (summ.east) -- (out.west|-summ);
+  \draw[arr] (fact) -| (out.south);
+\end{tikzpicture}}
+\caption{Architettura del sistema. \textbf{Stance} e \textbf{fact-check} operano entrambi sui
+documenti recuperati, in modo reciprocamente indipendente; \textbf{balance} consuma le stance e
+\textbf{summary} le colonne bilanciate. Il fact-check non alimenta il riassunto: arricchisce i
+documenti mostrati.}
+\label{fig:arch}
+\end{figure}
+
+\section{I moduli NLP sono un DAG, non una catena}\label{sec:modularita}
+Una precisazione architetturale importante: i quattro moduli NLP \emph{non} formano una catena
+in cui l'output di ciascuno è l'input del successivo. Analizzando le dipendenze dei dati,
+\textbf{stance} e \textbf{fact-check} operano entrambi direttamente sui documenti recuperati e
+in modo reciprocamente indipendente --- il verdetto di fact-checking non richiede la stance, né
+viceversa --- e sono quindi concettualmente parallelizzabili; \textbf{balance} dipende dalle
+stance, che usa per comporre le colonne e calcolare la diversità; \textbf{summary} dipende dalle
+colonne bilanciate.
+
+La distinzione ha una conseguenza pratica: il cammino critico è
+$\text{retrieval} \to \text{stance} \to \text{balance} \to \text{summary}$, mentre il
+fact-checking --- di gran lunga il modulo più lento con il motore LLM --- non vi appartiene e
+potrebbe essere sovrapposto. Nell'implementazione attuale i due rami sono eseguiti in sequenza.
+Si osservi inoltre che il fact-check è applicato \emph{dopo} il bilanciamento e non a tutti i
+documenti recuperati: non è una dipendenza logica ma un'ottimizzazione, poiché verificare
+documenti che verranno scartati costerebbe il doppio senza beneficio per l'utente.
+
+\section{Corpus a due ecosistemi}
+Per ciascun tema si mantengono due corpora fisicamente separati e indicizzati in modo
+indipendente. La separazione è essenziale: con un indice unico il retrieval scegliere\-bbe fra le
+due popolazioni in base alla sola pertinenza, e un tweet di venti parole competerebbe con un
+articolo di duemila con punteggi non commensurabili --- BM25 pesa la lunghezza, il denso soffre
+l'asimmetria di granularità --- così che la composizione del result set dipenderebbe da artefatti
+di lunghezza più che dal contenuto. Con indici distinti ogni ecosistema è interrogato al suo
+interno e i due result set sono confrontabili come campioni omogenei.
+
+\section{Scelte di progettazione e alternative scartate}
+La Tabella~\ref{tab:decisioni} raccoglie le decisioni rilevanti, ciascuna con l'alternativa
+considerata e la ragione dello scarto.
+
+\begin{table}[p]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{2.9cm}p{3.0cm}X}
+\toprule
+\textbf{Decisione} & \textbf{Alternativa scartata} & \textbf{Motivazione} \\
+\midrule
+Retrieval ibrido sparso $+$ denso &
+Solo denso, oppure solo BM25 &
+Complementari: BM25 cattura i termini tecnici esatti (``PWR reactor'', ``CO$_2$ ppm''), il denso
+sinonimi e parafrasi del dibattito argomentativo. Presi singolarmente lasciano scoperte classi
+di query complementari (verificato empiricamente, \S\ref{sec:ris-retrieval}). \\
+\addlinespace
+Indice FAISS esatto &
+Indice approssimato (HNSW, IVF) &
+Su $10^3$--$10^4$ vettori il vantaggio di latenza è irrilevante, mentre l'esattezza garantisce
+riproducibilità perfetta. \\
+\addlinespace
+Un indice per (tema $\times$ ecosistema) &
+Indice unico globale &
+L'utente interroga un tema specifico; indici separati evitano il rumore cross-tema e sono il
+prerequisito del confronto fra ecosistemi. \\
+\addlinespace
+Bilanciamento deterministico delle colonne &
+Loop agentico con LLM orchestratore &
+Il riempimento ordinato è $O(n)$, deterministico e ispezionabile. Un loop agentico
+introdurrebbe non-determinismo e costo senza garanzie aggiuntive. \\
+\addlinespace
+Full fine-tuning di DeBERTa-v3-base &
+Mixture-of-Experts; DANN; LoRA &
+MoE introduce non-determinismo nel routing, rendendo la Macro-F1 non riproducibile su test
+fisso. DANN aggiunge complessità di addestramento non giustificata quando la generalizzazione si
+ottiene a monte tramite VAST. Il modello è piccolo (184M) e sta nei 6\,GB in fp16. \\
+\addlinespace
+Diversità calcolata sul pool &
+Diversità sulle colonne mostrate &
+Le colonne sono bilanciate per costruzione: misurarne l'entropia restituirebbe una costante
+travestita da misura. \\
+\addlinespace
+Fact-checking su KB locale &
+API di ricerca web o servizi cloud &
+Riproducibilità (la KB è congelata e versionata per hash), assenza di quote e costi,
+funzionamento offline. Il prezzo è la copertura limitata, dichiarata fra i limiti. \\
+\addlinespace
+Due motori di verdetto sullo stesso stack &
+Due sistemi di fact-checking distinti &
+Condividendo estrazione, recupero e cancello di pertinenza, l'unica variabile che cambia è il
+motore: la differenza misurata è attribuibile ad esso. \\
+\addlinespace
+Beam search deterministico &
+Sampling con temperatura &
+La riproducibilità richiede che lo stesso cluster produca sempre lo stesso riassunto. Con
+\texttt{do\_sample=False} la temperatura è ininfluente: usarla sarebbe una contraddizione
+tecnica. \\
+\bottomrule
+\end{tabularx}
+\caption{Decisioni architetturali, alternative considerate e motivazioni.}
+\label{tab:decisioni}
+\end{table}
+
+\section{Il vincolo hardware come vincolo di progetto}\label{sec:memoria}
+L'intero sistema è progettato per una GPU portatile da \textbf{6\,GB} (NVIDIA RTX~4050 Laptop).
+Far coesistere un bi-encoder, un cross-encoder, un classificatore di stance, un modello NLI, un
+modello generativo e --- nel percorso LLM --- un modello da 7 miliardi di parametri richiede
+misure esplicite:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Caricamento pigro}: nessun modello è istanziato nel costruttore; ogni componente
+        pesante è una \emph{property} caricata al primo uso. Una ricerca senza fact-checking né
+        riassunti non carica mai spaCy, l'NLI o FLAN-T5. Il beneficio collaterale è la
+        testabilità della logica pura senza scaricare gigabyte di pesi.
+  \item \textbf{Cache a voce singola}: cambiare tema \emph{sostituisce} l'applicazione caricata
+        anziché affiancarne una seconda.
+  \item \textbf{Allocatore a segmenti espandibili} e liberazione esplicita della cache CUDA fra
+        i due ecosistemi, per contenere la frammentazione --- causa più frequente di
+        esaurimento apparente quando si alternano modelli di dimensioni diverse.
+  \item \textbf{Parametri ridotti nel solo percorso interattivo} (batch, claim per documento,
+        beam): degradazione consapevole di qualità in cambio di latenza. Non è applicata al
+        percorso di valutazione, quindi i numeri del Capitolo~\ref{cap:risultati} non sono
+        ottenuti con la configurazione ridotta.
+\end{itemize}
+
+Il vincolo ha avuto un effetto in parte benefico sulla qualità metodologica: ha reso
+impraticabile l'accumulo indiscriminato di modelli sempre più grandi e ha imposto di verificare,
+per ogni componente, se un modello maggiore valesse il suo costo --- l'ablazione base~vs~large
+sul motore NLI (\S\ref{sec:ris-ablazione}) nasce da questa necessità.
+
+\section{Organizzazione del codice}
+Il codice è organizzato per responsabilità: \texttt{preprocessing}, \texttt{retrieval}
+(sparse, dense, hybrid, reranker, column\_balancer), \texttt{nlp} (stance, fact-checker nelle
+sue varianti, summarizer), \texttt{evaluation} (metriche e caricamento dei qrels),
+\texttt{gui}. Gli script di costruzione dei dati e di valutazione stanno in \texttt{scripts/},
+separati dal codice di libreria perché hanno dipendenze più pesanti e non devono essere
+importati dalla pipeline online.
+
+Tutti gli iperparametri risiedono in \texttt{configs/config.yaml}, con la motivazione di
+ciascuno annotata accanto al valore; due file ausiliari definiscono temi, target e query
+canoniche (\texttt{topics.yaml}) e il registro di credibilità delle fonti
+(\texttt{sources.yaml}). Vi risiedono anche le tre soglie del fact-checker --- il cancello di
+pertinenza e le due soglie asimmetriche del verdetto --- che sono scelte sperimentali e come tali
+devono essere visibili e modificabili senza toccare il codice.
+
+Una convenzione che si è rivelata utile è la separazione sistematica fra \textbf{funzioni pure}
+e codice di I/O negli script: nella costruzione del corpus social, per esempio, parsing,
+campionamento e costruzione dei documenti sono funzioni pure, e solo \texttt{main()} accede a
+rete e filesystem. Il beneficio è la testabilità: la suite conta \textbf{174 test} eseguiti in
+meno di 30 secondi, senza rete e senza GPU, e copre preprocessing, costruzione dei dati,
+aggregazione dei verdetti, parsing delle risposte LLM, rendering della GUI, metriche di ranking,
+$\kappa$ e Stance Diversity.
+
+\section{Interfaccia}
+La dashboard (Streamlit) traduce le scelte metodologiche in scelte di presentazione: tre colonne
+affiancate con palette divergente; una barra di diversità segmentata che mostra
+contemporaneamente il punteggio e le proporzioni del pool; schede per ecosistema, così che il
+confronto sia un cambio di scheda a parità di tutto il resto; card espandibili con claim,
+verdetto e collegamenti alle fonti. Il \emph{soft-filter} merita una nota: selezionando una
+posizione la colonna corrispondente si allarga, ma le altre \emph{non} scompaiono --- un filtro
+rigido ricostruirebbe esattamente l'echo chamber che il sistema intende contrastare.
+
+Le query canoniche sono \textbf{precalcolate}: corpus fisso e modelli deterministici implicano
+che i risultati non cambino, quindi si calcolano una volta e si rileggono da JSON in
+millisecondi, senza GPU a runtime. La motivazione è pratica: il fact-checking con motore LLM
+richiede minuti per ecosistema, il che lo renderebbe inadatto a una dimostrazione interattiva.
+
+% =================================================================
+\chapter{Dati}\label{cap:dati}
+
+Questo capitolo documenta i dati impiegati. Riceve spazio ampio perché è dove nascono
+contemporaneamente i risultati del lavoro e i loro limiti: le decisioni di campionamento prese
+qui determinano che cosa i numeri del Capitolo~\ref{cap:risultati} possano dimostrare.
+
+\section{Temi e target}\label{sec:target}
+Sono stati selezionati tre temi divisivi: energia nucleare, cambiamento climatico, vaccini. Per
+ciascuno sono definiti parole chiave per il filtraggio, un \emph{target} per la stance detection
+e un insieme di query canoniche (Tabella~\ref{tab:temi}).
+
+La distinzione fra \emph{tema} e \emph{target} merita attenzione, perché è una delle poche
+scelte tarate empiricamente. Il target è la stringa passata allo stance detector come primo
+segmento della coppia, e la sua formulazione influenza il comportamento del classificatore. Due
+decisioni sono state prese su misure e non su intuizioni. Per il clima si usa
+\texttt{"global warming"} anziché \texttt{"climate change"}: il primo è più \emph{marcato}, dato
+che nel dibattito anglosassone ``climate change'' è divenuto largamente descrittivo mentre
+``global warming'' conserva la carica polemica delle posizioni negazioniste; la sostituzione ha
+portato il recall su AGAINST dal $51\%$ al $78\%$. Per i vaccini si usa il target generale
+\texttt{"vaccine safety"} anziché \texttt{"COVID-19 vaccination"}: quest'ultimo produceva una
+diversità sul corpus news implausibilmente alta ($0{,}69$, superiore a quella del social) senza
+alcun miglioramento del recall su AGAINST.
+
+Il secondo caso è metodologicamente istruttivo: un target mal scelto può \emph{gonfiare} la
+metrica di diversità senza che nulla sia migliorato. È un promemoria del fatto che la Stance
+Diversity è una misura derivata, la cui affidabilità non supera quella del classificatore che la
+alimenta.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lllX}
+\toprule
+\textbf{Tema} & \textbf{Target} & \textbf{Ecosistemi} & \textbf{Query canoniche} \\
+\midrule
+Nucleare & \texttt{nuclear energy} & news &
+\emph{risks of nuclear energy}; \emph{is nuclear power safe}; \emph{nuclear energy and climate
+change}; \emph{nuclear waste disposal} \\
+\addlinespace
+Clima & \texttt{global warming} & news, social &
+\emph{is climate change caused by humans}; \emph{economic cost of climate policy};
+\emph{climate change and extreme weather} \\
+\addlinespace
+Vaccini & \texttt{vaccine safety} & news, social &
+\emph{are vaccines safe}; \emph{vaccine side effects}; \emph{vaccine mandates};
+\emph{do vaccines cause autism} \\
+\bottomrule
+\end{tabularx}
+\caption{Temi, target di stance, ecosistemi disponibili e query canoniche.}
+\label{tab:temi}
+\end{table}
+
+L'ultima query dei vaccini è inclusa deliberatamente come banco di prova del fact-checker:
+verte su una claim falsa notoria di cui la knowledge base contiene la confutazione esplicita.
+
+\section{Corpus news: CC-News}
+L'ecosistema media/news è costruito da \textbf{CC-News} (\texttt{vblagoje/cc\_news}), consumato
+in streaming. Ogni articolo attraversa una catena di filtri: lunghezza minima (i frammenti
+troncati non hanno contenuto argomentativo); un filtro anti-spam commerciale; l'assegnazione del
+tema per \emph{densità} di parole chiave, dove un articolo è accettato solo se supera
+contemporaneamente una soglia sul numero di occorrenze e una sulla loro densità --- la seconda è
+essenziale, perché un articolo di tremila parole che cita ``climate change'' una volta di
+passaggio non è un articolo sul clima; e infine un \textbf{tetto del 15\% per dominio}, senza il
+quale le agenzie ad alto volume saturerebbero il corpus, con il duplice danno di ridurne
+artificialmente la diversità e di sovrarappresentare articoli quasi duplicati.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lrrrX}
+\toprule
+\textbf{Tema} & \textbf{Doc.} & \textbf{Tier 2} & \textbf{Tier 3} & \textbf{Domini più frequenti} \\
+\midrule
+Nucleare & 403 & 38 & 365 & uk.reuters.com (46), reuters.com (19), dailymail.co.uk (13) \\
+Clima & 800 & 49 & 751 & uk.reuters.com (79), eurekalert.org (30), channelnewsasia.com (28) \\
+Vaccini & 714 & 53 & 661 & nbcnews.com (19), dailymail.co.uk (15), uk.reuters.com (13) \\
+\midrule
+\textbf{Totale} & \textbf{1917} & \textbf{140} & \textbf{1777} & \\
+\bottomrule
+\end{tabularx}
+\caption{Composizione del corpus news dopo il filtraggio (708\,241 articoli scansionati).}
+\label{tab:corpus-news}
+\end{table}
+
+Due osservazioni sulla Tabella~\ref{tab:corpus-news}. Il tema nucleare non raggiunge la quota di
+800 documenti: la finestra temporale di CC-News non contiene abbastanza articoli che superino
+congiuntamente le soglie di densità e il tetto per dominio. La colonna \emph{Tier} indica invece
+che la maggioranza dei documenti ricade nel tier~3, che è il valore \emph{prudenziale di default}
+assegnato ai domini non presenti nel registro delle fonti: non significa che il corpus sia di
+bassa qualità, ma che il registro copre una frazione minoritaria dei domini presenti.
+
+\paragraph{Un dato rilevante per l'interpretazione.}\label{sec:against-news}
+Una misura condotta sul corpus news con il modello di stance fine-tunato rileva che i documenti
+classificati AGAINST costituiscono il \textbf{$2{,}6\%$} del corpus clima e il
+\textbf{$2{,}9\%$} del corpus vaccini. In positivo, è una misura diretta e non confondata
+dell'omogeneità del corpus news: la cronaca su questi temi, nel campione considerato, quasi non
+contiene posizioni contrarie. In negativo, è precisamente ciò che ha reso necessaria la
+costruzione di un corpus social con campionamento stratificato --- e che ha così generato il
+confondimento discusso nella sezione seguente.
+
+\section{Corpus social}\label{sec:corpus-social}
+L'ecosistema social utilizza due dataset pubblici di tweet etichettati per stance, scaricati
+direttamente da repository GitHub senza alcun ricorso alle API di Twitter (che oggi non
+sarebbero né gratuite né riproducibili):
+
+\begin{description}[leftmargin=1.1cm,style=nextline]
+  \item[Clima] \small
+        \texttt{edwardcqian/climate\_change\_sentiment}, file \texttt{data/sample\_data.csv}.\\
+        Campo testuale \texttt{message}, etichetta \texttt{sentiment}, mappatura
+        $\{1 \to \textsc{favor},\, -1 \to \textsc{against},\, 0 \to \textsc{neutral}\}$; la
+        classe ``2'' (segnalazione di notizia) è scartata perché non esprime una posizione.
+  \item[Vaccini] \small
+        \texttt{sohampoddar26/covid-vax-stance}, file
+        \texttt{dataset/our\_labelled\_data.csv}.\\
+        Campo testuale \texttt{tweet}, etichetta \texttt{majority\_label}, mappatura
+        $\{\text{ProVax} \to \textsc{favor},\, \text{AntiVax} \to \textsc{against},\,
+        \text{Neutral} \to \textsc{neutral}\}$.
+\end{description}
+
+Gli URL esatti, i conteggi e l'hash SHA-256 dei file prodotti sono in
+\texttt{data/corpora/}\allowbreak\texttt{MANIFEST\_social.json}. Il trattamento comprende
+deduplicazione per testo normalizzato (necessaria per eliminare i retweet, che gonfierebbero le classi più virali) e
+campionamento \textbf{stratificato per classe} con tetto uniforme e seed fissato: 999 tweet per
+il clima (333 per classe) e 870 per i vaccini (290 per classe).
+
+\avvertenza{Avvertenza metodologica --- confondimento fra ecosistema e campionamento.}{%
+Il corpus social ha, \emph{per costruzione}, entropia di stance massima ($1{,}000$): le tre
+classi sono campionate in parti esattamente uguali. Il corpus news ha invece la distribuzione
+\emph{naturale} risultante dal filtraggio, fortemente sbilanciata (circa il $3\%$ di AGAINST).
+Ne consegue che il confronto diretto fra la diversità misurata sui due ecosistemi \textbf{non
+isola una proprietà degli ecosistemi}: una parte non quantificabile a priori della differenza
+osservata è attribuibile alla differenza fra un campionamento stratificato e uno naturale.}
+
+La stratificazione non è stata arbitraria: senza di essa non sarebbe stato possibile disporre di
+un gold set bilanciato su cui valutare lo stance detector nella classe AGAINST --- valutazione
+che si è rivelata uno dei risultati diagnostici più informativi del progetto. In altri termini,
+la stratificazione era la scelta giusta per l'obiettivo di \emph{valutare lo stance detector} ed
+è quella sbagliata per l'obiettivo di \emph{confrontare gli ecosistemi}; il corpus è stato
+costruito una volta e usato per entrambi gli scopi, e questo è l'errore di disegno. La
+contromisura proposta è nella Sezione~\ref{sec:lift}.
+
+\section{Knowledge base, dataset di stance e benchmark}
+La fonte di evidenza del fact-checker è una \textbf{knowledge base Wikipedia} di 1589 articoli,
+costruita espandendo categorie seme pertinenti ai tre temi --- incluse deliberatamente
+\emph{Climate change denial} e \emph{Vaccine hesitancy}, perché la KB deve contenere le voci che
+descrivono e confutano le posizioni negazioniste, altrimenti il fact-checker non troverebbe
+evidenze proprio per le claim che più contano. Di ciascun articolo si scarica
+l'\textbf{introduzione} anziché il testo completo: per convenzione redazionale è un riassunto dei
+fatti salienti, quindi la porzione a più alta densità di evidenza verificabile. L'accesso avviene
+via API MediaWiki con \emph{batching} e User-Agent conforme; ogni evidenza conserva titolo e URL
+canonico, il che rende ogni verdetto tracciabile dall'interfaccia.
+
+Il modello di stance è addestrato sull'unione di \textbf{VAST}~\cite{vast} e
+\textbf{SemEval-2016 Task~6}~\cite{semeval}, normalizzati in uno schema comune
+(Tabella~\ref{tab:stance-data}). Due caratteristiche vanno sottolineate: l'elevatissimo numero di
+\textbf{target distinti} in addestramento (4\,644, interamente dovuto a VAST), che è la proprietà
+da cui deriva la capacità di generalizzare a temi non visti; e lo \textbf{sbilanciamento di
+NEUTRAL} ($20{,}1\%$ contro il $42{,}5\%$ di AGAINST), che motiva l'uso della Macro-F1 come
+metrica di selezione del modello.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{Split} & \textbf{Esempi} & \textbf{FAVOR} & \textbf{AGAINST} & \textbf{NEUTRAL} &
+\textbf{VAST} & \textbf{SemEval} & \textbf{Target} \\
+\midrule
+Train & 16\,097 & 6\,005 & 6\,849 & 3\,243 & 13\,477 & 2\,620 & 4\,644 \\
+Test  & 4\,255 & 1\,248 & 1\,733 & 1\,274 & 3\,006 & 1\,249 & 763 \\
+\bottomrule
+\end{tabular}
+\caption{Composizione degli split per la stance detection.}
+\label{tab:stance-data}
+\end{table}
+
+La valutazione del fact-checking impiega \textbf{ClimateFEVER}~\cite{climatefever}. Ogni claim è
+corredata di più evidenze con etichetta propria, oltre all'etichetta complessiva: la doppia
+annotazione consente la valutazione a due granularità descritta nella
+Sezione~\ref{sec:proto-fc}. Le claim DISPUTED sono escluse dalla valutazione a livello di claim,
+poiché il sistema non prevede una classe corrispondente e includerle significherebbe conteggiare
+come errori casi in cui nessuna risposta disponibile è corretta.
+
+\section{Riproducibilità dei dati}
+Ogni fase di costruzione produce un \texttt{MANIFEST.json} che registra sorgente esatta,
+parametri, conteggi, distribuzione per classe e un \textbf{hash SHA-256} del file prodotto. I
+file di dati non sono versionati --- sono rigenerabili --- mentre i manifest lo sono: chiunque
+rieseguga uno script può verificare l'identità bit a bit del proprio risultato con quello usato
+qui. Tutti i campionamenti usano un seed esplicito.
+
+% =================================================================
+\chapter{Metodologia}\label{cap:metodo}
+
+\section{Preprocessing}
+Il preprocessing serve esclusivamente al ramo sparso: il ramo denso opera sul testo grezzo,
+perché i modelli di embedding sono addestrati su testo naturale. Tre scelte lo caratterizzano.
+La \textbf{lemmatizzazione} anziché lo stemming, che produce forme troncate spesso non parole,
+scelta anche perché le frasi del corpus vengono mostrate all'utente come anteprime ed evidenze.
+La \textbf{preservazione delle negazioni} (\texttt{not}, \texttt{never}, \texttt{n't} e una lista
+estesa), benché figurino nelle liste standard di stopword: ``Nuclear power is \emph{not} safe'' e
+``Nuclear power is safe'' hanno stance opposte e token quasi identici una volta rimosse. E la
+\textbf{simmetria} fra documenti in indicizzazione e query in interrogazione: un'asimmetria è
+sorgente classica di \emph{vocabulary mismatch} artificiale.
+
+\section{Retrieval, stadio 1: fusione}\label{sec:metodo-retrieval}
+
+\paragraph{Ramo sparso.} BM25 (Equazione~\ref{eq:bm25}) con $k_1 = 1{,}2$, valore di default
+standard adottato da Lucene ed Elasticsearch, e $b = 0{,}60$, deliberatamente inferiore al
+default $0{,}75$. La ragione è di dominio: la normalizzazione per lunghezza esiste per
+contrastare un effetto spurio --- un documento lungo contiene più termini e ha più probabilità di
+contenere quelli della query per caso --- ma su una collezione omogenea di articoli
+giornalistici, dove quasi tutti i documenti sono lunghi, l'effetto spurio è minore mentre il
+costo resta: penalizzare i documenti lunghi significa penalizzare gli articoli più ricchi di
+evidenze fattuali, che sono quelli di cui il fact-checking a valle ha bisogno.
+
+\paragraph{Ramo denso.} I documenti sono segmentati in \emph{chunk} da 512 token con overlap di
+128 ($25\%$). Il valore 512 corrisponde al limite del contesto degli encoder BERT-based: un testo
+più lungo verrebbe silenziosamente troncato dall'encoder. L'overlap del $25\%$ --- coerente con
+la pratica di Lewis et al.~\cite{rag} --- evita che un'affermazione a cavallo di due chunk vada
+perduta da entrambi. L'implementazione opera a livello di parola con un fattore di conversione
+stimato, approssimazione dichiarata. Ogni chunk è codificato con \emph{bge-base-en-v1.5} (768
+dim.), L2-normalizzato e inserito in un indice FAISS \texttt{IndexFlatIP}; la query è codificata
+con il prefisso-istruzione, i passaggi mai.
+
+Poiché l'unità indicizzata è il chunk ma quella restituita è il documento, serve
+un'aggregazione. Si adotta il \textbf{max-pooling}:
+\begin{equation}\label{eq:maxpool}
+\text{dense}(d) = \max_{c \,\in\, \text{chunk}(d)} \text{sim}(q, c).
+\end{equation}
+La motivazione è che un documento è rilevante se \emph{almeno una} sua porzione lo è: un articolo
+che dedica un paragrafo esattamente al tema della query è rilevante anche se i restanti nove
+decimi parlano d'altro. Una media penalizzerebbe sistematicamente i documenti lunghi,
+reintroducendo dal lato denso la distorsione che dal lato sparso si è attenuata abbassando $b$.
+
+\paragraph{Normalizzazione e fusione.} Entrambi i rami producono un punteggio per \emph{ogni}
+documento. I due vettori sono normalizzati min-max in $[0,1]$ e combinati secondo
+l'Equazione~\ref{eq:fusion} con $\alpha = 0{,}45$ e $\beta = 0{,}55$. La normalizzazione è
+indispensabile perché BM25 non è limitato superiormente mentre il coseno vive in $[-1,1]$:
+sommarli grezzi equivarrebbe a ignorare il ramo denso. La scelta $\alpha < \beta$ riflette la
+natura semantica del dominio, mantenendo però un peso sostanziale al segnale lessicale, perché la
+terminologia tecnica specifica è proprio ciò che i modelli densi tendono a generalizzare
+eccessivamente. La selezione dei primi $k$ avviene \emph{una sola volta} sui punteggi fusi,
+ottenendo un pool di 50 documenti; è implementata anche la baseline RRF
+(Equazione~\ref{eq:rrf}). Se l'indice denso non è disponibile il sistema degrada a solo-BM25 con
+un avviso, anziché fallire.
+
+\section{Retrieval, stadio 2: reranking}
+Il pool viene riordinato da un cross-encoder (\emph{bge-reranker-base}) che ripunteggia i primi
+30 candidati: il flusso è un imbuto $|\mathcal{D}| \to 50 \to 30$. Due precisazioni. Il reranker
+è \textbf{agnostico alla stance}: riordina per pura pertinenza, e il bilanciamento avviene
+interamente dopo. Mescolare i due criteri renderebbe impossibile distinguere, nel risultato
+finale, ciò che è stato scelto per pertinenza da ciò che è stato scelto per bilanciamento, e
+soprattutto renderebbe circolare la misura di diversità. Inoltre il reranker non può recuperare
+ciò che lo stadio 1 non ha proposto: il suo tetto è il recall dello stadio 1, ed è questa la
+ragione per cui il Recall@$k$ è la metrica corretta per valutare il primo stadio e l'NDCG@10
+quella per la pipeline completa.
+
+\section{Stance detection}\label{sec:metodo-stance}
+Dato un target $t$ e un documento $d$ il modulo stima $P(s \mid t, d)$ su tre classi,
+restituendo la classe di massima probabilità, la sua confidenza e la distribuzione completa ---
+conservata e propagata fino all'interfaccia, così che l'utente possa distinguere una
+classificazione netta da una incerta.
+
+Il modello è un \textbf{DeBERTa-v3-base}~\cite{deberta} (184M) sottoposto a \emph{full
+fine-tuning} su VAST~$\cup$~SemEval, con input codificato come coppia nativa
+\texttt{[CLS] target [SEP] documento [SEP]}. Gli iperparametri sono nella
+Tabella~\ref{tab:iperparam-training}; due meritano un commento. La selezione del checkpoint su
+\textbf{Macro-F1 di validazione} anziché sulla loss: con classi sbilanciate la loss è dominata
+dalle maggioritarie, e selezionare su di essa produrrebbe modelli che sacrificano NEUTRAL. E la
+combinazione \emph{batch size} 8 con \emph{gradient accumulation} 4, che realizza un batch
+efficace di 32 restando entro i 6\,GB: la traduzione diretta del vincolo hardware in una scelta
+di addestramento.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{ll@{\qquad}ll}
+\toprule
+\textbf{Parametro} & \textbf{Valore} & \textbf{Parametro} & \textbf{Valore} \\
+\midrule
+Modello base & \texttt{deberta-v3-base} & Warmup ratio & 0,06 \\
+Lunghezza massima & 256 token & Weight decay & 0,01 \\
+Epoche & 3 (early stopping, patience 1) & Precisione & fp16 \\
+Batch size & 8 ($\times$4 accumulation $=$ 32) & Metrica di selezione & Macro-F1 val. \\
+Learning rate & $2 \times 10^{-5}$ & Validazione & 10\%, stratificata \\
+\bottomrule
+\end{tabular}
+\caption{Iperparametri di fine-tuning dello stance detector (seed 42).}
+\label{tab:iperparam-training}
+\end{table}
+
+In inferenza i documenti sono troncati alle prime 400 parole ($\approx$512 token). Il troncamento
+privilegia l'inizio dell'articolo, scelta ragionevole nel dominio giornalistico dove la struttura
+a piramide rovesciata colloca in apertura la tesi principale, ma va dichiarata: un articolo che
+esprime la propria posizione solo in chiusura verrebbe classificato sulla sua parte descrittiva.
+Se il modello fine-tunato non è presente su disco il sistema degrada a una pipeline
+\emph{zero-shot} su modello NLI, che è anche la \textbf{baseline} contro cui il fine-tuning è
+misurato.
+
+\section{Bilanciamento e Stance Diversity}\label{sec:metodo-diversity}
+I documenti rerankati sono classificati e distribuiti nelle tre colonne con un algoritmo
+deliberatamente elementare e deterministico:
+
+\begin{lstlisting}[language=Python]
+classifica tutti i documenti del pool (un solo batch)
+per ogni documento d, in ordine di pertinenza decrescente:
+    c = stance(d)
+    aggiungi d a full[c]                  # tutto il pool: serve alla diversity
+    se len(colonne[c]) < per_column:      # per_column = 5
+        aggiungi d a colonne[c]           # le colonne prendono i piu' pertinenti
+diversity = entropia_normalizzata(full)
+\end{lstlisting}
+
+Poiché il pool è già ordinato per pertinenza, il primo documento di una data posizione è anche il
+più pertinente di quella posizione: le colonne raccolgono i migliori rappresentanti di ciascuna
+fazione senza ordinamenti aggiuntivi. Se una posizione è rara l'algoritmo la pesca scorrendo più
+in profondità; se è assente la colonna resta vuota, e questa è un'informazione, non un difetto.
+È la versione deterministica dell'idea di \emph{self-correction retrieval}: nessun loop agentico,
+solo una selezione ordinata $O(n)$ ispezionabile.
+
+La diversità è l'entropia di Shannon normalizzata sulla distribuzione delle stance:
+\begin{equation}\label{eq:diversity}
+\text{Diversity}(p) = -\frac{1}{\log 3}\sum_{c \in \{\textsc{f},\textsc{n},\textsc{a}\}}
+p_c \log p_c \;\in\; [0,1],
+\end{equation}
+con la convenzione $0\log 0 = 0$.
+
+\paragraph{Perché sul pool e non sulle colonne.} La diversità è calcolata sulla distribuzione
+dell'\textbf{intero pool classificato}, non sulle tre colonne mostrate. Le colonne sono
+bilanciate \emph{per costruzione}: se il pool contiene almeno cinque documenti per posizione, le
+colonne conterranno $5{+}5{+}5$ e la loro entropia sarà esattamente $1$, indipendentemente da
+qualunque proprietà del corpus. Misurare lì restituirebbe una costante travestita da misura. Ne
+segue la lettura dei due numeri che l'interfaccia mostra affiancati: la barra rappresenta
+\emph{ciò che il corpus offre}, le colonne \emph{ciò che il sistema mostra}, e la distanza fra i
+due è la misura di quanto il bilanciamento sia intervenuto.
+
+\paragraph{Proprietà e limiti.} La metrica vale $0$ se e solo se tutti i documenti condividono la
+stessa posizione e $1$ se e solo se le tre sono equamente rappresentate
+(Tabella~\ref{tab:diversity-esempi}). È \emph{invariante per permutazione} delle classi: un pool
+dominato da NEUTRAL riceve lo stesso punteggio di uno dominato da FAVOR, benché il primo descriva
+una copertura descrittiva e il secondo una schierata --- per questo l'interfaccia mostra sempre
+anche la distribuzione. È \emph{insensibile alla dimensione} del campione, desiderabile per la
+confrontabilità ma con la conseguenza che la metrica non segnala la propria incertezza: su pool di
+30 documenti la varianza campionaria non è trascurabile. Ed è calcolata su etichette
+\emph{predette}: un classificatore che confonde le classi tende a produrre distribuzioni più
+uniformi di quelle reali, gonfiando la diversità. È la minaccia principale
+(\S\ref{sec:validita-interna}).
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccl}
+\toprule
+\textbf{Distribuzione (F, N, A)} & \textbf{Proporzioni} & \textbf{Diversity} & \textbf{Lettura} \\
+\midrule
+$(30,0,0)$ & $(1{,}00;\,0;\,0)$ & $0{,}00$ & echo chamber perfetta \\
+$(28,1,1)$ & $(0{,}93;\,0{,}03;\,0{,}03)$ & $0{,}27$ & copertura quasi unanime \\
+$(20,8,2)$ & $(0{,}67;\,0{,}27;\,0{,}07)$ & $0{,}73$ & dominante, minoranza presente \\
+$(15,10,5)$ & $(0{,}50;\,0{,}33;\,0{,}17)$ & $0{,}92$ & dibattito sbilanciato ma reale \\
+$(10,10,10)$ & $(0{,}33;\,0{,}33;\,0{,}33)$ & $1{,}00$ & bilanciamento perfetto \\
+\bottomrule
+\end{tabular}
+\caption{Comportamento della Stance Diversity su un pool di 30 documenti.}
+\label{tab:diversity-esempi}
+\end{table}
+
+\paragraph{Una metrica correttiva: il diversity lift.}\label{sec:lift}
+Come anticipato, il confronto diretto fra le diversità di due corpora campionati diversamente non
+isola una proprietà degli ecosistemi. Sia $p^{\text{pool}}_q$ la distribuzione nel pool per la
+query $q$ e $p^{\text{corpus}}$ quella dell'intero corpus; si definisce
+\begin{equation}\label{eq:lift}
+\text{Lift}(q) = \frac{H\bigl(p^{\text{pool}}_q\bigr)}{H\bigl(p^{\text{corpus}}\bigr)} .
+\end{equation}
+Il lift risponde a una domanda migliore: \emph{il retrieval amplifica o attenua lo sbilanciamento
+già presente nel corpus?} Un valore $>1$ indica che il sistema recupera un insieme più plurale del
+corpus medio; un valore $<1$ che il ranking per pertinenza sta concentrando le prospettive, cioè
+che il motore stesso contribuisce all'echo chamber. Il pregio decisivo è di essere
+\textbf{invariante rispetto alla distribuzione a priori}: due corpora campionati diversamente
+producono lift confrontabili. Il calcolo richiede una passata batch dello stance detector
+sull'intero corpus; l'implementazione è indicata fra gli sviluppi immediati.
+
+\section{Fact-checking}\label{sec:metodo-factcheck}
+Il fact-checker realizza l'architettura a tre fasi di FEVER con una scelta distintiva: le prime
+due fasi sono condivise, la terza è \emph{intercambiabile}.
+
+\paragraph{Fase 1 --- estrazione delle claim.} Dal testo si estraggono le frasi dichiarative con
+predicato verbale tramite spaCy. Non tutte meritano verifica: si adotta un'euristica di
+\emph{check-worthiness} ispirata a ClaimBuster~\cite{claimbuster} che pesa le frasi su entità
+nominate e valori numerici, con peso maggiore alle entità --- una claim verificabile cita
+tipicamente fatti concreti e attribuiti (``\emph{France} generates \emph{70\%} of its electricity
+from nuclear power''), mentre una percentuale isolata senza soggetto è ambigua. In esercizio si
+verifica la claim più check-worthy di ciascun documento mostrato, limitazione dettata dal costo.
+
+\paragraph{Fase 2 --- evidenze e cancello di pertinenza.} Le frasi della KB sono codificate con
+\emph{bge} e la ricerca avviene per similarità coseno. Il componente critico è il
+\textbf{cancello di pertinenza}: se la similarità della migliore evidenza è inferiore a $0{,}62$
+il verdetto è immediatamente NOT\_ENOUGH\_EVIDENCE e il motore non viene nemmeno invocato.
+L'accorgimento è meno banale di quanto sembri e nasce da un'osservazione empirica: un recupero
+semantico su una KB tematica restituisce \emph{sempre} qualcosa, e passare al motore un'evidenza
+solo tematicamente vicina produce un'alta percentuale di falsi REFUTED, perché il modello NLI
+legge come contraddizione una premessa che parla d'altro pur nello stesso ambito. Il cancello
+trasforma questo fallimento silenzioso in un onesto ``non ho evidenze sufficienti''.
+
+\paragraph{Fase 3a --- motore NLI.} Un classificatore FEVER-tuned
+(\texttt{DeBERTa-v3-base-mnli-fever-anli}) predice per ciascuna coppia (evidenza, claim) le
+probabilità di entailment, neutralità e contraddizione. La regola di decisione è deliberatamente
+\emph{asimmetrica}:
+\begin{equation}
+\text{verdetto} =
+\begin{cases}
+\textsc{supported} & \text{se } \max_i P_{\text{ent}}^{(i)} \ge 0{,}75 \;\wedge\;
+                                \max_i P_{\text{ent}}^{(i)} \ge \max_i P_{\text{con}}^{(i)},\\[3pt]
+\textsc{refuted}   & \text{se } \max_i P_{\text{con}}^{(i)} \ge 0{,}95,\\[3pt]
+\textsc{nei}       & \text{altrimenti.}
+\end{cases}
+\end{equation}
+L'asimmetria fra le due soglie riflette un giudizio sui costi d'errore: dichiarare falsamente
+``confutata'' un'affermazione vera è, in un sistema che si presenta come strumento di verifica,
+molto più grave del dichiarare ``evidenza insufficiente'' --- il primo produce disinformazione con
+l'autorità del sistema, il secondo solo un'astensione. Gli indici delle classi sono letti
+dinamicamente da \texttt{model.config.id2label}, non hardcodati: un errore silenzioso classico se
+si sostituisce il modello NLI con uno che ordina le classi diversamente.
+
+\paragraph{Fase 3b --- motore LLM.} Un Large Language Model locale (\texttt{qwen2.5:7b} via
+Ollama) ragiona sull'insieme delle evidenze e restituisce un verdetto strutturato in JSON con
+motivazione (prompt in Appendice~\ref{app:prompt}). Tre aspetti sono rilevanti. Il
+\textbf{grounding puro}: il prompt istruisce il modello a giudicare esclusivamente sulle evidenze
+fornite, mai sulla conoscenza parametrica. Il vincolo riduce le allucinazioni e --- soprattutto
+--- rende il confronto con l'NLI onesto: senza grounding, un'eventuale superiorità dell'LLM
+sarebbe attribuibile alla conoscenza pregressa anziché alla capacità di ragionare sull'evidenza,
+rendendo il confronto privo di significato. Il \textbf{determinismo}: temperatura $0$ e output
+vincolato a JSON. E la \textbf{robustezza del parsing}: funzioni pure e testabili senza rete che
+tentano il JSON, in caso di fallimento cercano un'etichetta riconoscibile nel testo, normalizzano
+un'ampia tabella di sinonimi che i modelli producono spontaneamente, e in assenza di segnale
+ripiegano su NOT\_ENOUGH\_EVIDENCE. Anche l'irraggiungibilità del server produce NEI anziché
+un'eccezione: il fallimento è \emph{sicuro} per costruzione.
+
+\section{Summarization}
+La sintesi per prospettiva impiega FLAN-T5-base con strategia \emph{extract-then-abstract}: una
+fase estrattiva punteggia le frasi della colonna con un BM25 a livello di frase e ne seleziona le
+più salienti, riducendo l'input sotto la finestra di contesto e insieme la ridondanza fra
+documenti che riportano gli stessi fatti. La fase astrattiva usa \textbf{beam search puro}
+(\texttt{do\_sample=False}, \texttt{no\_repeat\_ngram\_size} $=3$): lo stesso cluster deve
+produrre sempre lo stesso riassunto. Si segnala una precisazione tecnica fonte di confusione
+frequente: la temperatura ha effetto \emph{solo} quando il campionamento è attivo, e associarla al
+beam search è una combinazione incoerente, non una regolazione della creatività.
+
+Una nota di onestà implementativa: era stata sperimentata l'iniezione di marcatori di riferimento
+(\texttt{[Doc N]}) per rendere ogni affermazione tracciabile, e la tecnica è stata
+\emph{abbandonata} perché FLAN-T5-base riproduce i marcatori come stringhe senza usarli
+correttamente, producendo attribuzioni errate --- peggio dell'assenza di attribuzione. La
+tracciabilità è garantita a livello di colonna. Il modulo non è stato fine-tunato per l'assenza di
+riassunti di riferimento di dominio e perché la strategia estrattiva riduce il compito generativo
+alla sola riscrittura.
+
+% =================================================================
+\chapter{Protocollo sperimentale}\label{cap:protocollo}
+
+Questo capitolo definisce che cosa viene misurato, come e su quali dati, \emph{prima} di
+riportarne i risultati. La separazione non è formale: serve a rendere verificabile che le
+metriche non siano state scelte dopo aver visto i numeri.
+
+\section{Principi e ambiente}
+Il protocollo segue quattro principi: \textbf{benchmark citabili} dove possibile (VAST,
+SemEval-2016 T6, ClimateFEVER) anziché dati costruiti ad hoc; \textbf{separazione degli insiemi},
+con selezione del checkpoint sulla validazione e mai sul test; \textbf{isolamento della
+variabile}, cioè nei confronti fra alternative cambia un solo elemento; e \textbf{dichiarazione
+delle lacune}, elencate esplicitamente anziché omesse.
+
+Tutte le valutazioni sono offline, su GPU NVIDIA RTX~4050 Laptop da 6\,GB. Nessuna misura dipende
+da servizi remoti, quote o chiavi API; l'LLM è eseguito in locale. I comandi esatti sono in
+Appendice~\ref{app:comandi}.
+
+\section{Metriche}
+\emph{Accuracy} è riportata per completezza ma non è la metrica primaria: su classi sbilanciate
+premia i classificatori che ignorano le classi rare. La metrica primaria per stance e
+fact-checking è la \textbf{Macro-F1}, media \emph{non pesata} delle F1 per classe: non pesando le
+classi per frequenza, attribuisce a una classe rara e difficile lo stesso peso di una frequente,
+così che un modello che ignorasse NEUTRAL, o che non emettesse mai SUPPORTED, venga penalizzato in
+modo visibile. Poiché entrambi questi comportamenti si sono effettivamente manifestati, la scelta
+si è rivelata diagnosticamente decisiva; le F1 per classe sono sempre riportate accanto alla
+media, perché la media da sola può nascondere profili molto diversi.
+
+Per il ranking si usano NDCG@$k$ (Equazione~\ref{eq:ndcg}), MAP e Recall@$k$; per la diversità
+l'entropia normalizzata (Equazione~\ref{eq:diversity}); per l'accordo fra annotatori il $\kappa$ di
+Cohen~\cite{cohen}, nella variante a \textbf{pesi quadratici} $w_{ij} = 1 - ((i-j)/(K-1))^2$, che
+è quella corretta su scala ordinale: la versione non pesata tratterebbe ``0 contro 1'' e ``0
+contro 2'' come lo stesso errore.
+
+\section{Protocollo: stance detection}\label{sec:proto-stance}
+Tre livelli di difficoltà e rilevanza applicativa crescenti. \textbf{Test held-out}: Macro-F1 e F1
+per classe sui 4\,255 esempi di test, confrontate con la baseline zero-shot NLI sugli stessi
+esempi. \textbf{Cross-dataset}: le stesse metriche calcolate \emph{separatamente} sui due
+sottoinsiemi di provenienza, per verificare che la prestazione complessiva non sia trainata da un
+solo dataset e che il modello generalizzi a target non visti. \textbf{Dominio applicativo}:
+Macro-F1 sulle etichette gold dei corpora social, la misura più severa perché valuta il modello
+fuori distribuzione, ed è anche l'unica condotta sui dati effettivamente elaborati in esercizio.
+
+Va dichiarato che \textbf{non} esiste una valutazione equivalente per l'ecosistema news: mancano
+etichette gold su articoli. La conseguenza per l'interpretazione della diversità è nella
+Sezione~\ref{sec:validita-interna}.
+
+\section{Protocollo: fact-checking}\label{sec:proto-fc}
+La valutazione su ClimateFEVER è condotta a \textbf{due granularità} che misurano cose diverse.
+\emph{Per-evidenza}: il motore predice l'etichetta di ogni coppia (claim, evidenza) e la si
+confronta con l'etichetta della singola evidenza; è la misura pulita del motore come
+classificatore, senza aggregazione. \emph{Claim-level}: il verdetto è ottenuto aggregando su tutte
+le evidenze della claim e confrontato con l'etichetta complessiva; è il verdetto end-to-end, più
+difficile perché somma all'errore di classificazione quello di aggregazione.
+
+Il confronto fra motori è condotto a livello di claim e \textbf{a parità di evidenze}: a entrambi
+vengono passate esattamente le stesse evidenze annotate del benchmark, così che l'unica differenza
+sia il meccanismo che emette il verdetto. È il punto metodologico centrale: senza di esso una
+eventuale superiorità dell'LLM sarebbe attribuibile in modo indistinguibile al motore o alla
+catena di recupero. È inoltre prevista un'\textbf{ablazione} sulla dimensione del modello NLI
+(\emph{base} contro \emph{large}), per verificare se il costo superiore sia giustificato.
+
+\section{Protocollo: Stance Diversity}\label{sec:proto-div}
+Per ciascun tema si eseguono le query canoniche su tutti gli ecosistemi disponibili, si registra la
+diversità del pool per ogni coppia (query, ecosistema) e si riporta la media per ecosistema. La
+procedura è identica per i due ecosistemi, il che elimina per costruzione i confondimenti di
+trattamento. Resta il confondimento di campionamento della Sezione~\ref{sec:corpus-social}, che il
+protocollo attuale \emph{non} controlla; il protocollo esteso prevede di riportare accanto a
+ciascuna diversità anche quella a priori del corpus e il \emph{diversity lift}.
+
+\section{Protocollo: retrieval}\label{sec:proto-retrieval}
+\paragraph{Topic e pooling.} Le 11 query canoniche. Per ciascuna il pool è l'\textbf{unione} dei
+primi 20 risultati di cinque run: BM25 puro, denso puro, RRF, fusione con $\alpha$ di default, e
+l'insieme dei candidati riordinati dal reranker. I documenti mai entrati nel pool sono considerati
+non rilevanti, secondo la convenzione di Cranfield.
+
+L'unione multi-run non è un formalismo. Pescando dal solo run di fusione, i documenti che
+esclusivamente BM25 o il denso propongono resterebbero non giudicati e conteggiati come non
+rilevanti, sottostimando sistematicamente proprio le baseline che l'ablazione intende confrontare
+--- è il \emph{pool bias}, e su un'ablazione di questo tipo ne invaliderebbe le conclusioni. La
+misura sui dati reali quantifica il fenomeno: dei \textbf{380} giudizi del pool, \textbf{143 --- il
+$38\%$ --- provengono da un solo run} (Tabella~\ref{tab:pool}).
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Tema} & \textbf{Query} & \textbf{Coppie nel pool} & \textbf{Da un solo run} \\
+\midrule
+Nucleare & 4 & 137 & 50 \\
+Clima & 3 & 109 & 48 \\
+Vaccini & 4 & 134 & 45 \\
+\midrule
+\textbf{Totale} & \textbf{11} & \textbf{380} & \textbf{143 (38\%)} \\
+\bottomrule
+\end{tabular}
+\caption{Composizione del pool, unione di cinque run a profondità 20. L'ultima colonna quantifica
+ciò che un pooling dal solo run di fusione avrebbe perso.}
+\label{tab:pool}
+\end{table}
+
+\paragraph{Scala e annotazione.} Rilevanza graduata su tre livelli: $0$ non rilevante, $1$
+marginalmente rilevante (tratta il tema ma non risponde alla query), $2$ pienamente rilevante. La
+scala graduata è necessaria per l'NDCG e più informativa di quella binaria su un dominio in cui la
+pertinenza è raramente netta. Ogni coppia è giudicata \textbf{due volte}, da due annotatori umani
+che compilano fogli identici e separati: due colonne nello stesso file si contaminerebbero a
+vicenda e l'accordo risulterebbe gonfiato. L'ordine delle righe è randomizzato entro ciascuna query e le colonne
+di rango e punteggio non compaiono nel foglio: un annotatore che vede ``rank 1'' è primato a
+giudicarlo rilevante, e il \emph{position bias} falserebbe proprio la metrica che si sta
+costruendo. I criteri sono formalizzati in linee guida scritte
+(Appendice~\ref{app:qrels}); la regola più rilevante --- e la più facile da violare su un corpus di
+temi divisivi --- è la separazione fra \emph{rilevanza} e \emph{posizione}: un documento che nega
+l'origine antropica del riscaldamento è pienamente rilevante per la query ``\emph{is climate change
+caused by humans}''. Confondere i due assi significherebbe misurare il motore sulla sua capacità di
+occultare le opinioni scomode, cioè l'opposto dell'obiettivo del sistema.
+
+\paragraph{Sistemi confrontati.} Sei: BM25 puro; denso puro; RRF; fusione con $\alpha$ di default;
+fusione con $\alpha$ tarato; fusione seguita da reranking. Il confronto fra le prime tre e la
+quarta quantifica il guadagno della fusione pesata; fra la quarta e la quinta il guadagno della
+taratura; fra la quarta e la sesta il guadagno del secondo stadio. La taratura di $\alpha$ avviene
+in \textbf{leave-one-topic-out}: per ogni tema, $\alpha$ è scelto sulle query degli altri due e
+valutato sulle proprie. Con 11 query, scegliere $\alpha$ sullo stesso insieme su cui si riporta il
+risultato sarebbe sovradattamento garantito. Si riporta infine la \textbf{copertura dei giudizi},
+cioè la frazione del top-$k$ effettivamente giudicata: se scende sensibilmente sotto 1 il confronto
+è viziato dal pool e va dichiarato.
+
+\section{Ciò che non viene valutato}
+La \textbf{summarization} non è valutata quantitativamente: mancano riassunti di riferimento di
+dominio e in loro assenza ROUGE e BERTScore non sono calcolabili. La \textbf{stance detection
+sull'ecosistema news} non è valutata, per assenza di gold annotato su articoli. Il
+\textbf{fact-checking end-to-end sui documenti reali} non è valutato: la valutazione usa le
+evidenze fornite dal benchmark, quindi la qualità del recupero dalla KB propria del sistema non è
+quantificata. Nessuna misura è accompagnata da intervalli di confidenza o test di significatività
+(\S\ref{sec:validita-conclusione}).
+
+% =================================================================
+\chapter{Risultati}\label{cap:risultati}
+
+\section{Stance detection}\label{sec:ris-stance}
+Sul test held-out il modello fine-tunato raggiunge \textbf{Macro-F1 $0{,}771$}, contro $0{,}390$
+della baseline zero-shot sugli stessi esempi (Tabella~\ref{tab:stance}).
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Test held-out} ($n = 4255$) & \textbf{Macro-F1} & \textbf{FAVOR} & \textbf{AGAINST} & \textbf{NEUTRAL} \\
+\midrule
+Fine-tuned (DeBERTa-v3-base) & \textbf{0,771} & 0,715 & 0,740 & 0,858 \\
+Baseline zero-shot NLI       & 0,390 & --- & --- & 0,125 \\
+\bottomrule
+\end{tabular}
+\caption{Stance detection: Macro-F1 complessiva e F1 per classe.}
+\label{tab:stance}
+\end{table}
+
+Il guadagno è distribuito su tutte le classi ma particolarmente marcato su \textbf{NEUTRAL}
+($0{,}858$ contro $0{,}125$). Il fallimento della baseline lì è comprensibile: l'ipotesi
+``\emph{This text is neutral about X}'' non è una buona ipotesi NLI, perché la neutralità è
+l'assenza di una relazione piuttosto che una relazione, e un modello di entailment non ha modo
+naturale di esprimerla. La conseguenza per il sistema è diretta: senza riconoscimento affidabile
+di NEUTRAL la Stance Diversity sarebbe sistematicamente sovrastimata, perché i documenti neutri
+verrebbero distribuiti fra FAVOR e AGAINST producendo distribuzioni artificialmente bipolari. La
+capacità di riconoscere l'\emph{assenza} di posizione è quindi un prerequisito della metrica, non
+un raffinamento.
+
+\paragraph{Generalizzazione cross-dataset.} Macro-F1 $0{,}768$ su VAST e $0{,}741$ su SemEval. La
+sostanziale parità è positiva per due ragioni: la prestazione complessiva non è trainata dal solo
+dataset maggioritario, e --- più rilevante --- VAST contiene 763 target distinti nel test, in larga
+parte non visti, per cui quel valore è una misura di generalizzazione \emph{cross-target} e non di
+memorizzazione. È il dato che giustifica a posteriori la rinuncia a tecniche di adattamento di
+dominio: la generalizzazione è stata ottenuta a monte, tramite la varietà dei target in
+addestramento, anziché a valle tramite l'architettura.
+
+\paragraph{Dominio applicativo.}\label{sec:ris-stance-social}
+Sul gold dei corpora social la Macro-F1 scende a $\sim\!0{,}48$ (clima $0{,}478$, vaccini
+$0{,}485$). Il calo, di circa 29 punti, \textbf{non è uniforme}: è quasi interamente imputabile a
+NEUTRAL (F1 fra $0{,}07$ e $0{,}23$), mentre FAVOR e AGAINST restano fra $0{,}6$ e $0{,}7$. Il
+profilo è quello di un modello che continua a distinguere bene le posizioni schierate e perde quasi
+completamente la capacità di riconoscere l'assenza di posizione.
+
+L'interpretazione proposta è che il ``neutro'' sui social sia un \textbf{costrutto diverso}. Nei
+dataset di addestramento la neutralità è tipicamente un testo informativo che riporta fatti; nei
+tweet, molti contenuti etichettati come neutri sono ironici, allusivi, frammentari o riferiti a un
+contesto conversazionale assente. Non si tratta soltanto di uno spostamento di dominio linguistico
+ma dello spostamento della \emph{definizione della classe}: un miglioramento richiederebbe una
+ri-annotazione con linee guida specifiche, non semplicemente più dati.
+
+\section{Fact-checking su ClimateFEVER}
+
+\paragraph{Motore NLI e ablazione sulla dimensione.}\label{sec:ris-ablazione}
+La misura per-evidenza dà Accuracy $0{,}606$ e Macro-F1 $0{,}449$ con il modello \emph{base}.
+L'analisi per classe individua il collo di bottiglia: \textbf{SUPPORTED} ha F1 $\approx 0{,}20$,
+contro $0{,}73$ di NEI e $0{,}42$ di REFUTED. Il profilo è quello di un modello
+\emph{conservativo}: bravo a riconoscere l'assenza di evidenza, discreto nel confutare, debole nel
+confermare --- e la debolezza persiste nella misura per-evidenza pura, dove le soglie del sistema
+non intervengono, quindi è una proprietà del modello e non della politica di decisione.
+
+La variante \emph{large} dà $0{,}620$ / $0{,}458$: $+1{,}4$ punti di accuracy a costo circa triplo.
+Si adotta il modello \emph{base}. La conclusione metodologica è però più interessante di quella
+operativa: che triplicare la dimensione produca meno di un punto e mezzo suggerisce che il limite
+non risieda nella capacità del modello ma nella \emph{formulazione del compito} --- ipotesi che
+l'esperimento successivo conferma.
+
+\paragraph{NLI contro LLM a parità di evidenze.}\label{sec:ris-fc-confronto}
+Sostituendo l'NLI con il ragionamento dell'LLM locale a livello di claim ($n = 1381$), i risultati
+cambiano radicalmente (Tabella~\ref{tab:fc}): Macro-F1 da $0{,}350$ a $0{,}640$ ($+83\%$),
+Accuracy da $0{,}393$ a $0{,}667$. Il salto decisivo è su SUPPORTED, da $0{,}065$ a $0{,}753$: il
+ragionamento colma esattamente il punto in cui l'NLI falliva.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{ClimateFEVER, claim-level} ($n{=}1381$) & \textbf{Acc} & \textbf{Macro-F1} & SUP & REF & NEI \\
+\midrule
+NLI (DeBERTa-v3-base-mnli-fever-anli) & 0,393 & 0,350 & 0,065 & 0,479 & 0,507 \\
+\textbf{LLM (qwen2.5:7b, grounding puro)} & \textbf{0,667} & \textbf{0,640} & \textbf{0,753} & \textbf{0,565} & \textbf{0,601} \\
+\midrule
+$\Delta$ relativo & $+70\%$ & $+83\%$ & $+1058\%$ & $+18\%$ & $+19\%$ \\
+\bottomrule
+\end{tabular}
+\caption{Fact-checking: confronto fra i due motori di verdetto a parità di evidenze.}
+\label{tab:fc}
+\end{table}
+
+Tre osservazioni. Il confronto è \textbf{controllato}: entrambi i motori ricevono le stesse
+evidenze annotate, quindi non è un confronto fra sistemi ma fra motori a parità di tutto il resto.
+Il \textbf{grounding esclude la spiegazione più ovvia}, cioè che l'LLM risponda a memoria su claim
+climatiche già viste; va detto con onestà che l'istruzione \emph{riduce} ma non elimina
+formalmente il rischio, e verificarne l'assenza richiederebbe un esperimento di controllo con
+evidenze contraffatte, non condotto qui. E il \textbf{profilo si ribalta}: l'NLI era pessimo nel
+confermare e relativamente migliore nel confutare, l'LLM diventa il più forte nel confermare e
+trova il suo punto debole in REFUTED. Non è quindi un modello uniformemente migliore ma due profili
+di errore \emph{complementari}: riconoscere una conferma richiede un'inferenza a più passi ---
+l'evidenza raramente ripete la claim, la implica attraverso passaggi impliciti --- mentre
+riconoscere una contraddizione è in molti casi una questione di incompatibilità locale, più alla
+portata di un classificatore addestrato su coppie di frasi. La complementarità suggerisce che
+un'aggregazione dei due motori potrebbe superare entrambi.
+
+Il guadagno ha un costo in latenza: circa $4$ secondi per claim contro decine di millisecondi, due
+ordini di grandezza. Il trade-off è esplicito: l'NLI resta appropriato per l'uso interattivo, l'LLM
+per l'elaborazione differita --- che è la strategia adottata nella dimostrazione, dove i verdetti di
+entrambi i motori sono precalcolati sulle query canoniche, così che il confronto sia ispezionabile
+dall'utente.
+
+\paragraph{Una conferma collaterale sui documenti propri.} Precalcolare entrambi i motori sulle
+stesse 11 query produce $160$ verdetti per motore, sugli stessi documenti e con le stesse evidenze.
+Non sono una misura di accuratezza --- su questi documenti non esiste gold --- ma la
+\emph{distribuzione} dei verdetti riproduce l'inversione di profilo misurata su ClimateFEVER: l'NLI
+emette $2\%$ di SUPPORTED e $15\%$ di REFUTED, l'LLM ribalta le proporzioni a $17\%$ e $7\%$. Il
+comportamento osservato sul benchmark non è dunque un artefatto di ClimateFEVER: si ripresenta fuori
+campione, su un corpus giornalistico e su una knowledge base diversa. Entrambi restano prudenti ---
+oltre tre quarti dei verdetti sono NOT\_ENOUGH\_EVIDENCE --- il che è il comportamento atteso di un
+cancello di pertinenza tarato per non produrre falsi REFUTED.
+
+\section{Stance Diversity: media contro social}\label{sec:ris-diversity}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Stance Diversity} & \textbf{News} & \textbf{Social} & $H$ \textbf{a priori del corpus social} \\
+\midrule
+Energia nucleare & 0,545 & --- & --- \\
+Cambiamento climatico & 0,322 & \textbf{0,621} & 1,000 \\
+Vaccini & 0,229 & \textbf{0,600} & 1,000 \\
+\bottomrule
+\end{tabular}
+\caption{Diversità di stance comparata. L'ultima colonna riporta l'entropia a priori del corpus
+social, uniforme per costruzione (\S\ref{sec:corpus-social}).}
+\label{tab:div}
+\end{table}
+
+Su entrambi i temi con corpus social la diversità misurata è circa doppia rispetto ai media. La
+lettura immediata sarebbe controintuitiva rispetto al senso comune che associa i social alla
+polarizzazione. Va però sottoposta a due qualificazioni di segno opposto.
+
+\paragraph{Il risultato solido.} I valori dell'ecosistema news sono interpretabili in senso
+assoluto: il corpus è un campione naturale, e $0{,}229$ sui vaccini significa che sulle query
+canoniche il materiale recuperabile è fortemente concentrato su una sola posizione. Questo è
+coerente con la misura indipendente della Sezione~\ref{sec:against-news}, che rileva circa il $3\%$
+di documenti AGAINST nell'intero corpus. Due misure ottenute per vie diverse --- una sul pool
+recuperato, una sull'intero corpus --- concordano, e la loro concordanza rafforza la conclusione
+che \emph{la cronaca giornalistica su questi temi, nel campione considerato, è marcatamente
+omogenea}. È il risultato più difendibile del capitolo.
+
+\paragraph{Il confronto, invece, è confondato.} Il \emph{rapporto} fra i due ecosistemi non è
+interpretabile come proprietà degli ecosistemi, per la ragione esposta nella
+Sezione~\ref{sec:corpus-social}: la differenza somma un effetto reale ignoto e un artefatto di
+campionamento. L'analisi completa, con la direzione dell'artefatto, è nella
+Sezione~\ref{sec:validita-interna}.
+
+\paragraph{Un'osservazione collaterale.} Il corpus social, pur avendo entropia a priori $1{,}000$,
+produce pool con diversità $0{,}62$ e $0{,}60$, sensibilmente sotto il massimo. Lo scarto ha due
+spiegazioni non mutuamente esclusive: il retrieval per pertinenza concentra le prospettive --- che
+sarebbe un risultato interessante di per sé, misurabile con il \emph{diversity lift} --- oppure
+l'errore di classificazione su NEUTRAL distorce la distribuzione misurata. Con i dati attuali non
+è possibile separare i due contributi, ed è precisamente ciò che il lift, affiancato a un'analisi
+di sensibilità sulla confidenza, permetterebbe di fare. Il valore social per il nucleare non è
+disponibile, non essendo stato individuato un dataset di tweet comparabile su quel tema.
+
+\section{Retrieval}\label{sec:ris-retrieval}
+
+\subsection{Accordo fra annotatori}
+Le 380 coppie del pool sono state giudicate \textbf{due volte, da due annotatori umani} --- i due
+autori --- che hanno lavorato in cieco l'uno rispetto all'altro sulle stesse linee guida scritte
+(Appendice~\ref{app:qrels}). Nessuna delle due serie è stata consultata durante la compilazione
+dell'altra: l'accordo misurato su annotazioni allineate strada facendo sarebbe gonfiato e non
+significherebbe nulla.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+& & & \multicolumn{3}{c}{\textbf{$\kappa$ di Cohen}} \\
+\cmidrule(lr){4-6}
+\textbf{Tema} & \textbf{$n$} & Accordo & non pesato & lineare & \textbf{quadratico} \\
+\midrule
+Energia nucleare & 137 & 0,839 & 0,744 & 0,836 & \textbf{0,904} \\
+Cambiamento climatico & 109 & 0,761 & 0,587 & 0,712 & \textbf{0,814} \\
+Vaccini & 134 & 0,784 & 0,657 & 0,770 & \textbf{0,856} \\
+\midrule
+\textbf{Complessivo} & \textbf{380} & \textbf{0,797} & 0,675 & 0,784 & \textbf{0,867} \\
+\bottomrule
+\end{tabular}
+\caption{Accordo fra i due annotatori umani sui giudizi di rilevanza. Il valore da riportare su una
+scala ordinale è quello a pesi quadratici; le altre due varianti sono date per confrontabilità con
+la letteratura, che cita più spesso la forma non pesata.}
+\label{tab:kappa}
+\end{table}
+
+Il $\kappa$ quadratico complessivo è $0{,}867$ --- \emph{almost perfect} sulla scala di
+interpretazione convenzionale --- e non scende sotto $0{,}81$ su nessuno dei tre temi; il non
+pesato vale $0{,}675$, \emph{substantial}. Il divario fra le due varianti non è un artificio a
+proprio vantaggio ma il contenuto informativo della scelta: significa che il disaccordo, dove c'è,
+è quasi tutto fra gradi \emph{adiacenti}.
+
+È la struttura del disaccordo, più della sua media, a dire se le linee guida reggono. Sulle 380
+coppie i due giudizi divergono 77 volte: 31 sul confine fra $0$ e $1$, 44 su quello fra $1$ e $2$, e
+soltanto \textbf{2 a due gradini di distanza} --- i casi in cui un giudice dice ``non pertinente'' e
+l'altro ``pienamente pertinente'', nessuno dei quali sul nucleare. Non ci sono cioè coppie su cui i
+due annotatori abbiano letto documenti diversi: il disaccordo riguarda \emph{quanto} un documento
+serva alla query, non \emph{se} vi risponda. Il tema climatico resta il più difficile ($\kappa$
+quadratico $0{,}814$ contro $0{,}904$ del nucleare), coerentemente con query astratte su un corpus
+tematicamente saturo, dove il confine fra ``parla del tema'' e ``risponde alla domanda'' è il più
+sottile.
+
+Le due serie non sono però intercambiabili, e la differenza è sistematica: il secondo annotatore
+assegna il grado $2$ a $153$ coppie contro $117$ del primo, e in $39$ casi promuove a
+``pienamente rilevante'' un documento che il primo ha giudicato marginale (il passaggio inverso
+avviene $5$ volte). È una soglia di generosità diversa, non un disaccordo sul merito, e va tenuta
+presente leggendo l'ablazione: alza i valori assoluti di tutte le metriche calcolate sulla seconda
+serie senza spostare il confronto fra sistemi.
+
+\subsection{Ablazione dei sistemi}
+La Tabella~\ref{tab:ablazione-retrieval} riporta l'ablazione, calcolata due volte sulle due serie
+di giudizi.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{clcccccc}
+\toprule
+& & \multicolumn{3}{c}{\textbf{Annotatore 1}} & \multicolumn{3}{c}{\textbf{Annotatore 2}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{\#} & \textbf{Sistema} & NDCG & MAP & R@20 & NDCG & MAP & R@20 \\
+\midrule
+1 & BM25 puro                  & 0,616 & 0,488 & 0,583 & 0,643 & 0,494 & 0,604 \\
+2 & Denso puro (bge)           & 0,656 & 0,538 & 0,701 & 0,719 & 0,563 & 0,699 \\
+3 & Fusione RRF                & 0,653 & 0,535 & 0,671 & 0,704 & 0,548 & 0,673 \\
+4 & Fusione, $\alpha{=}0{,}45$ & 0,674 & 0,556 & \textbf{0,702} & 0,723 & 0,571 & \textbf{0,708} \\
+5 & Fusione, $\alpha$ tarato   & 0,644 & 0,538 & 0,685 & 0,719 & 0,574 & 0,700 \\
+6 & Fusione $+$ reranking      & \textbf{0,715} & \textbf{0,577} & \textbf{0,702} & \textbf{0,779} & \textbf{0,601} & \textbf{0,708} \\
+\bottomrule
+\end{tabular}
+\caption{Ablazione del retrieval su 11 query, calcolata sulle due serie di giudizi indipendenti.
+NDCG è a cutoff 10; i run sono troncati alla profondità 20 a cui il pool è giudicato, quindi il MAP
+è un MAP@20.}
+\label{tab:ablazione-retrieval}
+\end{table}
+
+\paragraph{Quanto l'ordinamento dipende da chi ha giudicato.} Cinque sistemi su sei si ordinano allo
+stesso modo sulle due serie --- \emph{rerank} $>$ \emph{fusione} $>$ \emph{denso} $>$ \emph{RRF} $>$
+\emph{BM25} --- e su quei cinque il $\tau_b$ di Kendall vale esattamente $1{,}0$. Sui sei scende a
+$0{,}733$, e l'intero scarto è imputabile a un solo sistema: la \emph{fusione tarata}, quinta sulla
+prima serie e terza sulla seconda. Vale la pena guardare di quanto: sulla seconda serie supera il
+denso di $0{,}0006$ di NDCG, cioè si colloca in un intervallo che 11 query non hanno la risoluzione
+per distinguere. Il $\tau_b$ registra quel sorpasso come un'inversione perché è una statistica
+d'ordine e ignora le distanze; la lettura corretta non è che il risultato sia instabile, ma che
+\emph{è instabile esattamente sul sistema che questa sezione conclude non dover essere usato}
+(\S\ref{sec:ris-retrieval}, taratura di $\alpha$). Le conclusioni sostantive --- il reranking come
+contributo maggiore, la fusione sopra entrambi i rami singoli e sopra RRF, BM25 ultimo --- sono
+invarianti rispetto all'annotatore.
+
+I valori assoluti sono invece sistematicamente più alti sulla seconda serie, di $3$--$6$ punti di
+NDCG: quell'annotatore assegna più giudizi di piena rilevanza ($153$ contro $117$) e c'è quindi più
+guadagno disponibile nel numeratore dell'NDCG. È la ragione per cui \emph{i valori assoluti di un
+NDCG non sono confrontabili fra collezioni giudicate da persone diverse}, mentre i confronti interni
+alla stessa collezione lo sono. Salvo indicazione contraria i numeri commentati nel seguito sono
+quelli della prima serie.
+
+\paragraph{Il reranking è il contributo più grande.} Il secondo stadio porta l'NDCG@10 da $0{,}674$
+a $0{,}715$ ($+6{,}1\%$ relativo; $+7{,}8\%$ sulla seconda serie), a Recall invariato per costruzione
+--- riordina, non recupera. È coerente con l'attesa teorica e la conferma su dati propri. Il
+dettaglio per tema (Tabella~\ref{tab:ablazione-topic}) mostra però che il guadagno non è distribuito:
+viene quasi tutto dai vaccini ($0{,}599 \to 0{,}722$), mentre sul nucleare, dove la fusione è già a
+$0{,}822$, il riordino è sostanzialmente neutro. Il reranker serve dove il primo stadio lascia
+margine, non ovunque.
+
+\paragraph{La fusione batte i rami singoli, ma il margine sul denso è sottile.} $0{,}674$ contro
+$0{,}656$ del denso e $0{,}616$ di BM25: $+2{,}9\%$ relativo sul denso e $+9{,}4\%$ su BM25. Il
+ramo denso porta la maggior parte del segnale e il contributo lessicale è reale ma modesto. La
+fusione pesata supera anche RRF ($0{,}653$), il che giustifica il parametro: combinare i punteggi
+conserva informazione che combinare i ranghi perde. Il dettaglio per tema
+(Tabella~\ref{tab:ablazione-topic}) mostra la ragione della complementarità: sul nucleare, dove
+pesano i termini tecnici, BM25 batte il denso ($0{,}800$ contro $0{,}737$); sul clima, dove domina la
+parafrasi, crolla a $0{,}405$ contro $0{,}576$. È esattamente la complementarità ipotizzata in
+progettazione, e la fusione serve a non dover scegliere. L'inversione fra i due rami è però il
+risultato più fragile del capitolo: sulla seconda serie di giudizi il denso resta avanti anche sul
+nucleare ($0{,}831$ contro $0{,}770$), e quello che sopravvive a entrambe le annotazioni è la
+\emph{variazione del divario} --- il vantaggio del denso passa da $-6$ punti sul nucleare a
+$+17$ sul clima nella prima serie, da $+6$ a $+17$ nella seconda --- non il segno.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{NDCG@10 (Annotatore 1)} & \textbf{Nucleare} & \textbf{Clima} & \textbf{Vaccini} \\
+\midrule
+BM25 puro & 0,800 & 0,405 & 0,591 \\
+Denso puro & 0,737 & 0,576 & 0,634 \\
+Fusione pesata & \textbf{0,822} & \textbf{0,579} & 0,599 \\
+Fusione $+$ reranking & 0,820 & 0,567 & \textbf{0,722} \\
+\bottomrule
+\end{tabular}
+\caption{Dettaglio per tema: il divario fra ramo sparso e denso si ribalta fra nucleare e clima, e
+il guadagno del reranking è concentrato sui vaccini.}
+\label{tab:ablazione-topic}
+\end{table}
+
+\paragraph{Tarare $\alpha$ su 11 query peggiora le prestazioni.} È il risultato più istruttivo. Il
+sistema con $\alpha$ tarato in leave-one-topic-out ($0{,}644$) è \emph{inferiore} a quello con il
+default ($0{,}674$); sulla seconda serie di giudizi la perdita si riduce a mezzo punto percentuale
+($0{,}719$ contro $0{,}723$) ma non cambia di segno. La ragione è visibile nella curva completa
+(Tabella~\ref{tab:alpha-curve}): fra $0{,}1$ e $0{,}5$ la metrica è praticamente piatta, con
+un'escursione di $1{,}6$ punti, e degrada solo oltre $0{,}6$. L'ottimo \emph{oracolo} della prima
+serie è $\alpha = 0{,}4$ con $0{,}6768$, cioè $+0{,}4\%$ rispetto al default: una differenza priva
+di significato pratico. E i due annotatori collocano l'ottimo in punti diversi ($0{,}4$ contro
+$0{,}2$), che è la firma del rumore. Con due soli temi di addestramento per fold la grid search
+seleziona quel rumore ($\alpha = 0{,}1$ sul fold del nucleare, su entrambe le serie) e generalizza
+peggio di un valore fissato a priori.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccccccccc}
+\toprule
+$\alpha$ & 0,1 & 0,2 & 0,3 & 0,4 & \textbf{0,45} & 0,5 & 0,6 & 0,8 & 0,9 \\
+\midrule
+NDCG@10 (Annot.\ 1) & 0,661 & 0,673 & 0,667 & \underline{0,677} & \textbf{0,674} & 0,669 & 0,660 & 0,640 & 0,627 \\
+NDCG@10 (Annot.\ 2) & 0,720 & \underline{0,731} & 0,725 & 0,721 & \textbf{0,723} & 0,712 & 0,710 & 0,692 & 0,672 \\
+\bottomrule
+\end{tabular}
+\caption{NDCG@10 in funzione del peso del ramo sparso. In grassetto il default adottato,
+sottolineato l'ottimo oracolo di ciascuna serie. La metrica è insensibile ad $\alpha$
+nell'intervallo utile.}
+\label{tab:alpha-curve}
+\end{table}
+
+La conclusione è duplice. Il default $\alpha = 0{,}45$, scelto per motivi di dominio, si rivela
+entro lo $0{,}4\%$ dall'ottimo misurabile: la scelta a priori era buona, e ora si può dirlo sui
+dati anziché sulla letteratura. Ma l'esperimento mostra anche che \emph{su questa scala di dati la
+taratura di $\alpha$ non è un'operazione sensata}: non c'è segnale sufficiente a distinguere i
+valori nell'intervallo utile, e tarare introduce varianza senza ridurre distorsione.
+
+\paragraph{Copertura dei giudizi.} È $1{,}000$ per cinque sistemi su sei, come atteso: il pool è
+l'unione dei loro run. L'unica eccezione è la fusione tarata ($0{,}986$ sulla prima serie, $0{,}982$
+sulla seconda), che a $\alpha$ diverso dal default pesca qualche documento fuori dal pool; quei
+documenti contano come non rilevanti e la penalizzano lievemente. L'effetto è di entità inferiore
+al divario osservato ($3{,}0$ punti di NDCG) e non ne ribalta il segno, ma va dichiarato.
+
+\section{Quadro d'insieme}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{3.3cm}p{2.9cm}p{2.5cm}X}
+\toprule
+\textbf{Componente} & \textbf{Benchmark} & \textbf{Risultato} & \textbf{Stato} \\
+\midrule
+Retrieval, 6 sistemi & qrels propri (380) & NDCG@10 0,715 & valutato \\
+Accordo annotatori & 2 umani, 380 coppie & $\kappa$ quad. 0,867 & \emph{almost perfect} \\
+Stance detection & VAST $\cup$ SemEval & Macro-F1 0,771 & valutato \\
+Stance, cross-dataset & VAST / SemEval & 0,768 / 0,741 & generalizza \\
+Stance, dominio social & gold social & $\sim$0,48 & calo analizzato \\
+Fact-check NLI & ClimateFEVER & Macro-F1 0,350 & valutato \\
+Fact-check LLM & ClimateFEVER & Macro-F1 0,640 & confronto controllato \\
+Stance Diversity & query canoniche & 0,229--0,621 & misurato, confronto confondato \\
+Summarization & --- & --- & non valutabile \\
+\bottomrule
+\end{tabularx}
+\caption{Stato di valutazione dei componenti.}
+\label{tab:quadro}
+\end{table}
+
+% =================================================================
+\chapter{Discussione e limiti}\label{cap:discussione}
+
+\section{Findings trasversali}
+\paragraph{L'omogeneità informativa è misurabile.} L'entropia normalizzata sulle stance predette è
+calcolabile su qualunque corpus testuale, senza dati relazionali, e restituisce un numero
+interpretabile. Il valore non sta nel particolare numero ottenuto ma nel fatto che l'echo chamber
+diventi una grandezza monitorabile, aprendo alla possibilità di confronti sistematici nel tempo o
+fra ambienti. Le condizioni sotto cui il confronto è lecito sono però più stringenti di quanto
+appaia, ed è la lezione principale del lavoro.
+
+\paragraph{Ragionare batte classificare, ma non ovunque.} A parità di evidenze un LLM locale di
+taglia contenuta supera nettamente un classificatore NLI specializzato, e lo supera proprio dove
+questo fallisce. Ma il profilo si ribalta su REFUTED. La conclusione corretta non è ``l'LLM è
+migliore'', bensì che i due approcci hanno errori \emph{complementari} e che la scelta dipende da
+quale errore sia più costoso --- o, meglio, che una loro combinazione meriterebbe di essere
+esplorata.
+
+\paragraph{Il secondo stadio vale più di qualunque taratura.} Sull'ablazione del retrieval, il
+reranking --- che nessun iperparametro controlla --- vale un guadagno dieci volte superiore a
+qualunque scelta di $\alpha$, la cui taratura su questa scala di dati è addirittura
+controproducente. È un promemoria sull'ordine delle priorità in un sistema di IR.
+
+\paragraph{Il grounding ha un prezzo e va pagato consapevolmente.} Vincolare il modello alle sole
+evidenze recuperate elimina la fonte principale di allucinazione, ma limita la copertura a ciò che
+la knowledge base contiene: una claim recente riceve NOT\_ENOUGH\_EVIDENCE non perché sia infondata
+ma perché il sistema non sa. È corretto per uno strumento di verifica --- l'astensione è
+preferibile all'affermazione arbitraria --- ma va comunicato all'utente, perché un NEI non è un
+giudizio sulla claim.
+
+\section{Analisi degli errori}
+\paragraph{Il NEUTRAL come costrutto instabile.} Il filo conduttore di gran parte degli errori è la
+classe NEUTRAL: riconosciuta eccellentemente sui benchmark ($0{,}858$) e quasi per nulla sui tweet
+($0{,}07$--$0{,}23$), mentre le classi schierate reggono in entrambi i regimi. Lo schema esclude la
+spiegazione più semplice --- un degrado generico fuori distribuzione, che colpirebbe tutte le classi
+--- e indica che a cambiare è la \emph{definizione} della classe. L'implicazione per il sistema è
+che la Stance Diversity misurata sul corpus social poggia, per una classe su tre, su una
+classificazione poco più che casuale; e poiché un classificatore che sbaglia in modo non sistematico
+tende a produrre distribuzioni più uniformi di quelle reali, l'errore agisce plausibilmente nella
+direzione di \emph{gonfiare} la diversità misurata sul social.
+
+\paragraph{SUPPORTED e la natura dell'inferenza.} Il fallimento dell'NLI su SUPPORTED ($0{,}065$ a
+livello di claim) è quantitativamente il risultato più estremo del lavoro, e l'ablazione base/large
+mostra che non si risolve con più capacità. La spiegazione proposta riguarda la natura del compito:
+nei dati reali l'evidenza raramente \emph{ripete} la claim, la implica attraverso passaggi non
+esplicitati (dall'evidenza ``la Francia produce il $70\%$ della sua elettricità da fonte nucleare''
+alla claim ``la Francia dipende in larga misura dal nucleare'' occorre un passaggio di inferenza
+lessicale e quantitativa). Un classificatore addestrato su coppie di frasi apprende bene la
+contraddizione locale e male l'implicazione a più passi.
+
+\paragraph{Falsi REFUTED e politiche di decisione.} Durante lo sviluppo si è osservato che un
+fact-checker basato su recupero semantico su KB tematica produce falsi REFUTED con frequenza
+elevata: le evidenze riguardano il tema giusto ma non sempre la claim giusta, e l'NLI interpreta la
+divergenza di argomento come contraddizione. L'introduzione del cancello di pertinenza e
+l'innalzamento della soglia di REFUTED a $0{,}95$ hanno convertito quei casi in NEI. È un esempio di
+come una scelta di \emph{politica di decisione} possa incidere sul comportamento osservabile quanto
+la scelta del modello.
+
+\section{Minacce alla validità}
+
+\subsection{Validità interna}\label{sec:validita-interna}
+\paragraph{Minaccia principale: confondimento fra ecosistema e campionamento.} Il corpus social è
+campionato in modo stratificato sulle tre classi (entropia a priori $=1{,}000$), quello news in
+modo naturale (circa il $3\%$ di AGAINST). La differenza osservata confonde quindi due effetti:
+\begin{equation}
+\underbrace{H_{\text{social}} - H_{\text{news}}}_{\text{differenza osservata}} =
+\underbrace{\Delta_{\text{ecosistema}}}_{\text{effetto di interesse}} +
+\underbrace{\Delta_{\text{campionamento}}}_{\text{artefatto}} ,
+\end{equation}
+senza che i dati attuali consentano di separare i due termini. Sulla \emph{direzione}
+dell'artefatto si può però ragionare con sicurezza: poiché la stratificazione porta l'entropia a
+priori del social al massimo possibile mentre il campionamento naturale del news restituisce
+un'entropia bassa, $\Delta_{\text{campionamento}} > 0$. L'artefatto agisce nella stessa direzione
+della conclusione riportata e ne \emph{sovrastima} l'entità; non è però possibile escludere che
+$\Delta_{\text{ecosistema}}$ sia nullo o di segno opposto.
+
+Le contromisure, in ordine crescente di costo ed efficacia, sono: \emph{riformulare la
+conclusione}, riportando i valori news come misura assoluta e presentando il confronto come
+condizionato alla costruzione dei corpora --- soluzione adottata in questa relazione; applicare il
+\emph{diversity lift} (\S\ref{sec:lift}), che rapportando la diversità del pool a quella del
+proprio corpus è invariante rispetto alla distribuzione a priori e rende i due ecosistemi
+confrontabili al costo di una passata offline; oppure \emph{ricostruire il corpus social con
+campionamento naturale}, mantenendo quello stratificato come esclusivo gold di valutazione dello
+stance detector --- soluzione definitiva, che elimina il confondimento alla radice.
+
+\paragraph{Minaccia secondaria: errore di misura asimmetrico.} La Stance Diversity è calcolata su
+etichette predette, e la qualità del predittore è misurata sul social ($\sim\!0{,}48$) ma
+\textbf{non sul news}, per assenza di gold su articoli. È quindi possibile che l'errore di misura
+sia di entità diversa nei due ecosistemi, e poiché l'errore tende a uniformare le distribuzioni,
+una differenza di accuratezza si tradurrebbe in una differenza spuria di diversità. Contromisure:
+annotare un gold pilota sul news (dell'ordine di 150 documenti bastano per una stima grossolana) e
+condurre un'analisi di sensibilità ricalcolando la diversità sui soli documenti classificati con
+confidenza superiore a una soglia.
+
+\subsection{Validità esterna}
+I corpora sono \textbf{piccoli}: 1917 articoli e 1869 tweet. Sufficienti a dimostrare il
+funzionamento del sistema e a produrre misure indicative, non a caratterizzare l'ecosistema
+mediatico. I \textbf{temi} sono tre, tutti sull'asse scienza/politica: nulla autorizza a estendere
+le conclusioni ad altri assi di divisività. La \textbf{lingua} è esclusivamente l'inglese e tutti i
+modelli sono monolingui. La \textbf{finestra temporale} è quella delle sorgenti, il che rende i
+corpora una fotografia di un periodo e non una serie storica --- proprio la dimensione che
+renderebbe interessante il monitoraggio. Va inoltre osservato che i due dataset social provengono da
+fonti diverse con schemi di annotazione originari diversi, il che aggiunge eterogeneità fra i due
+temi social.
+
+\subsection{Validità di costrutto}
+Il costrutto centrale è l'identificazione di \textbf{echo chamber} con \textbf{bassa entropia delle
+stance nel materiale recuperato}: operazionalizzazione ragionevole ma parziale, perché l'echo
+chamber riguarda l'esposizione effettiva di una persona nel tempo, mentre qui si misura la
+composizione di un insieme di documenti. Una copertura omogenea può inoltre riflettere un consenso
+scientifico legittimo anziché una distorsione informativa --- distinzione che la metrica non può
+fare, e che è particolarmente rilevante proprio sui temi trattati. Un secondo aspetto è
+l'\emph{invarianza per permutazione}, per cui una copertura prevalentemente neutra e una
+prevalentemente schierata ricevono lo stesso punteggio: è il motivo per cui l'interfaccia mostra
+sempre la distribuzione accanto al punteggio. Un terzo è la \textbf{dipendenza dal target}
+(\S\ref{sec:target}), al punto che un target mal scelto può gonfiare la diversità del $50\%$ senza
+che nulla sia migliorato: la metrica non è quindi proprietà del solo corpus, ma della coppia
+(corpus, target).
+
+\subsection{Validità delle conclusioni statistiche}\label{sec:validita-conclusione}
+Nessuna misura è accompagnata da intervalli di confidenza o test di significatività. Per le misure
+su benchmark ampi (stance su 4\,255 esempi, fact-checking su 1\,381 claim) la questione è meno
+pressante: le differenze osservate sono di entità tale da rendere implausibile che siano dovute al
+caso. Per la Stance Diversity, invece, il problema è concreto: le medie sono calcolate su 3--4
+query per tema, ciascuna su un pool di 30 documenti, e con numerosità di questo ordine una
+differenza di qualche centesimo non è distinguibile dal rumore. Lo stesso vale per l'ablazione del
+retrieval, che poggia su 11 query: sufficiente a stabilire un ordinamento --- risultato corroborato
+dall'invarianza di cinque sistemi su sei fra due serie di giudizi indipendenti --- ma non a
+distinguere differenze piccole, come mostra proprio il sistema che si scambia di posto fra le due
+serie a fronte di $0{,}0006$ di NDCG. Le contromisure appropriate sono riportare la deviazione
+standard fra query e ampliare l'insieme delle query.
+
+\section{Limiti}\label{sec:limiti}
+\begin{description}[leftmargin=1.1cm,style=nextline]
+  \item[Confronto fra ecosistemi confondato] La differenza di diversità fra social e news è
+        sovrastimata per costruzione dei corpora. I valori assoluti sul news restano validi.
+  \item[Numero di query ridotto nel retrieval] Undici query bastano a ordinare i sistemi ma non a
+        tarare $\alpha$ né a dare intervalli di confidenza. Il parametro $b$ di BM25 resta un
+        default motivato dal dominio e non tarato; l'esito della taratura di $\alpha$ rende
+        plausibile, ma non dimostrato, che lo stesso valga per $b$.
+  \item[Qrels non riconciliati] Le due annotazioni indipendenti servono a misurare l'accordo e la
+        stabilità dell'ordinamento, ma le divergenze non sono state adjudicate in un'unica serie
+        consolidata: i valori riportati restano quelli del primo annotatore, con il secondo come
+        replica. Con soli due giudici, inoltre, il $\kappa$ è esso stesso una stima rumorosa.
+  \item[Il NEUTRAL come costrutto] La nozione di neutralità sui social differisce da quella dei
+        benchmark; la Macro-F1 nel dominio applicativo scende a $\sim\!0{,}48$ quasi interamente per
+        questa ragione.
+  \item[Stance sul news non misurata] Manca un gold annotato su articoli giornalistici.
+  \item[Copertura della knowledge base] Claim recenti o molto specifiche producono NEI: è il limite
+        intrinseco di una KB statica.
+  \item[Fact-checking end-to-end non valutato] La valutazione usa le evidenze del benchmark, quindi
+        la qualità del recupero dalla KB propria non è quantificata.
+  \item[Grounding non verificato sperimentalmente] L'assenza di ricorso alla conoscenza parametrica
+        dell'LLM è imposta via prompt ma non verificata con un esperimento di controllo.
+  \item[Summarization non valutata] In assenza di riassunti di riferimento la qualità non è
+        quantificata: è una baseline ragionevole, non un componente validato.
+  \item[Metadati di fonte non sfruttati] Orientamento, affidabilità e tier sono calcolati e
+        persistiti su ogni documento ma non utilizzati a valle; la copertura del registro sul corpus
+        è inoltre bassa.
+\end{description}
+
+\section{Considerazioni etiche}\label{sec:etica}
+\paragraph{Il rischio della falsa equivalenza.} Presentare sempre tre colonne affiancate può
+suggerire che le tre posizioni abbiano pari fondamento. Su temi con un solido consenso scientifico
+questa è precisamente la distorsione nota come \emph{false balance}. Il sistema adotta due
+contromisure parziali: la barra di diversità mostra le proporzioni \emph{reali} del pool, rendendo
+visibile che una posizione è minoritaria anziché nasconderlo dietro colonne di uguale ampiezza; e il
+fact-checking affianca a ciascun documento un verdetto sulle sue affermazioni. Sono mitigazioni, non
+soluzioni: il problema è intrinseco all'interfaccia a colonne ed è dichiarato.
+
+\paragraph{Nessun filtro automatico sulle fonti.} Il registro di credibilità è usato per descrivere
+e, in prospettiva, per segnalare, mai per escludere automaticamente documenti. Un sistema che
+nascondesse silenziosamente determinate fonti eserciterebbe una curatela non trasparente, in
+conflitto con l'obiettivo di esporre alla pluralità. Le fonti di tier 3 sono mostrate ma non sono
+\emph{mai} usate come evidenza nel fact-checking: la distinzione fra ``ciò che si mostra'' e ``ciò
+su cui si fonda un verdetto'' è la linea che il sistema traccia.
+
+\paragraph{Reificazione delle posizioni e dati personali.} Ridurre un testo argomentato a una di tre
+etichette è una semplificazione: il sistema conserva e mostra la confidenza, ma la struttura a tre
+colonne impone comunque una categorizzazione netta, e la classificazione va intesa come strumento
+di navigazione, non come giudizio sul testo. I corpora social contengono testi pubblici di utenti
+reali: il sistema non raccoglie né mostra identificativi d'autore, non ricostruisce profili e non
+collega testi allo stesso autore; i dataset impiegati sono pubblici e già anonimizzati alla fonte.
+
+% =================================================================
+\chapter{Conclusioni}\label{cap:conclusioni}
+
+\section{Che cosa è stato ottenuto}
+\ES{} realizza un approccio operativo e riproducibile alla misura dell'echo chamber. Dato un tema
+divisivo, il sistema recupera i documenti pertinenti da due ecosistemi con una pipeline identica,
+ne stima la posizione argomentativa, li bilancia per prospettiva, ne verifica le affermazioni
+contro una base di conoscenza locale e li sintetizza per punto di vista, producendo una misura
+scalare della diversità di opinione. Ripercorrendo le domande della Sezione~\ref{sec:rq}:
+
+\begin{description}[leftmargin=1.3cm,style=nextline]
+  \item[RQ1 (misurabilità)] \emph{Risposta affermativa}. La Stance Diversity è calcolabile su
+        qualunque corpus testuale ed è stata analizzata nelle sue proprietà e nei suoi casi limite.
+        Il lavoro ha inoltre identificato la condizione sotto cui il confronto fra due valori è
+        lecito --- comparabilità delle procedure di campionamento --- e proposto una metrica
+        derivata che ne è invariante.
+  \item[RQ2 (confronto fra ecosistemi)] \emph{Risposta parziale e condizionata}. Il risultato solido
+        è che l'ecosistema news dei corpora costruiti è marcatamente omogeneo in senso assoluto
+        (diversità $0{,}23$--$0{,}55$; circa il $3\%$ di documenti AGAINST), con due misure
+        indipendenti che concordano. Il confronto con il social è confondato dalla differenza di
+        campionamento e non è interpretabile come proprietà degli ecosistemi finché non si applica la
+        contromisura.
+  \item[RQ3 (motore di verdetto)] \emph{Risposta affermativa e quantificata}. A parità di evidenze,
+        su ClimateFEVER l'LLM locale porta la Macro-F1 da $0{,}350$ a $0{,}640$, con SUPPORTED da
+        $0{,}065$ a $0{,}753$. Il profilo di errore dei due motori si rivela complementare: è il
+        risultato più interessante e meno anticipato del lavoro.
+  \item[RQ4 (fattibilità)] \emph{Risposta affermativa}. L'intera pipeline, che include sei modelli
+        neurali distinti fra cui un LLM da 7 miliardi di parametri, è eseguibile su una GPU
+        portatile da 6\,GB, interamente offline, con risultati riproducibili.
+\end{description}
+
+A queste si aggiunge un risultato non previsto fra le domande iniziali, emerso dall'ablazione del
+retrieval: sul regime di dati considerato \textbf{la taratura di $\alpha$ non è un'operazione
+sensata}, perché la metrica è piatta nell'intervallo utile del parametro e la procedura corretta ---
+la validazione leave-one-topic-out --- peggiora le prestazioni selezionando rumore.
+
+\section{Due lezioni trasversali}
+La prima riguarda la \textbf{fragilità delle metriche derivate}. La Stance Diversity è elegante e
+interpretabile, ma è calcolata su etichette predette da un classificatore e su un campione
+costruito da una procedura. Il lavoro ha incontrato entrambe le dipendenze nella loro forma
+concreta: un target mal scelto che gonfiava la diversità del $50\%$, e un campionamento stratificato
+che ne determina in larga parte il valore su un intero ecosistema. Una metrica derivata va sempre
+accompagnata dalla misura della qualità dei suoi ingredienti.
+
+La seconda riguarda il \textbf{rapporto fra specializzazione e capacità generale}. Il confronto
+NLI/LLM mostra che un modello specializzato e addestrato esattamente sul compito può essere superato
+da un generalista di taglia contenuta, e superato proprio dove il primo fallisce; ma mostra anche
+che la superiorità non è uniforme, e che là dove il compito si riduce al riconoscimento di
+un'incompatibilità locale la specializzazione tiene. La lettura utile non è gerarchica ma
+diagnostica: i due approcci sbagliano in modo diverso, ed è la struttura dell'errore --- non la
+media --- a indicare quale usare.
+
+\section{Sviluppi futuri}\label{sec:futuri}
+\paragraph{Consolidamento.} \emph{Diversity lift}: calcolare $H(p^{\text{corpus}})$ per entrambi gli
+ecosistemi e riportare il lift accanto alla diversità assoluta; è la contromisura al confondimento
+principale e richiede una sola passata offline. \emph{Gold pilota sul news}, per stimare la Macro-F1
+dello stance detector e valutare la simmetria dell'errore di misura fra ecosistemi. \emph{Più query}
+(40--50), per intervalli di confidenza e test di significatività, e l'\emph{adjudicazione} delle 77
+divergenze fra i due annotatori in un'unica serie consolidata, che è il passo che manca perché i
+qrels smettano di essere il giudizio di una persona con una replica accanto.
+
+\paragraph{Estensioni del sistema.} Sfruttare i \emph{metadati di fonte} già calcolati, mostrandoli
+all'utente e affiancando alla Stance Diversity una \emph{Source Diversity} sull'orientamento delle
+fonti del pool. \emph{Parallelizzare il ramo di fact-checking}, che è I/O-bound e non appartiene al
+cammino critico. \emph{Persistere l'indice della knowledge base}, i cui embedding sono attualmente
+ricalcolati a ogni avvio. Affiancare un \emph{RAG online} alla KB statica, mantenendo l'LLM locale
+come motore di ragionamento, per verificare anche claim recenti.
+
+\paragraph{Direzioni di ricerca.} \emph{Combinare i due motori di verdetto}, poiché i profili di
+errore sono complementari: l'NLI come filtro rapido e l'LLM sui casi incerti, oppure una votazione
+pesata per classe. Un \emph{confronto multi-LLM} fra modelli locali $\le$10B sul medesimo
+protocollo. La \emph{verifica sperimentale del grounding} con evidenze contraffatte. La
+\emph{ri-annotazione del NEUTRAL} con linee guida specifiche per il dominio social. E la
+\emph{dimensione temporale}: corpora su più finestre per lo stesso tema, che trasformerebbero la
+misura di diversità da fotografia in serie storica --- la forma in cui il monitoraggio dell'echo
+chamber diventa davvero informativo.
+
+% =================================================================
+\appendix
+
+\chapter{Iperparametri}\label{app:iper}
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Sezione} & \textbf{Parametro} & \textbf{Valore} \\
+\midrule
+Corpus & chunk / overlap & 512 / 128 token (25\%) \\
+\midrule
+BM25 & $k_1$ / $b$ & 1,2 / 0,60 \\
+\midrule
+Dense & modello & \texttt{BAAI/bge-base-en-v1.5} (768-dim) \\
+ & indice & FAISS \texttt{IndexFlatIP}; max-pooling sui chunk \\
+\midrule
+Fusione & $\alpha$ / $\beta$ & 0,45 / 0,55, normalizzazione min-max \\
+ & pool & 50 \; (baseline RRF con $k_{\text{rrf}} = 60$) \\
+\midrule
+Reranker & modello / top-$n$ & \texttt{BAAI/bge-reranker-base} / 30 \\
+\midrule
+Stance & modello & DeBERTa-v3-base fine-tunato (v.\ Tab.~\ref{tab:iperparam-training}) \\
+ & batch inferenza / troncamento & 16 / 400 parole \\
+\midrule
+Colonne & documenti per colonna & 5 \\
+\midrule
+Fact-check & KB & 1589 articoli Wikipedia (introduzioni) \\
+ & cancello di pertinenza & coseno $\ge 0{,}62$; 4--5 evidenze per claim \\
+ & NLI & \texttt{DeBERTa-v3-base-mnli-fever-anli} \\
+ & soglie & SUPPORTED $\ge 0{,}75$; REFUTED $\ge 0{,}95$ \\
+ & LLM & \texttt{qwen2.5:7b} (Ollama), temperatura 0, timeout 180\,s \\
+\midrule
+Summarization & modello & \texttt{google/flan-t5-base} \\
+ & frasi estratte / beam & 10 / 4 \; (\texttt{do\_sample=False}) \\
+ & max\_new\_tokens / no\_repeat & 200 / 3 \\
+\bottomrule
+\end{tabular}
+\caption{Iperparametri del sistema. Nel percorso interattivo beam e token sono ridotti (2 / 120).}
+\end{table}
+
+\chapter{Prompt del motore LLM}\label{app:prompt}
+Prompt di sistema effettivamente usato. Si notino l'istruzione di grounding puro, la definizione
+esplicita delle tre classi e il vincolo di formato che rende la risposta parsabile.
+
+\begin{lstlisting}
+You are a rigorous fact-checking assistant. You receive a CLAIM and a
+numbered list of EVIDENCE passages. Using ONLY the evidence (never prior
+knowledge), decide:
+- SUPPORTED: the evidence confirms/entails the claim;
+- REFUTED: the evidence contradicts the claim;
+- NOT_ENOUGH_EVIDENCE: the evidence is insufficient, unrelated, or ambiguous.
+Reply ONLY with JSON: {"verdict": "SUPPORTED|REFUTED|NOT_ENOUGH_EVIDENCE",
+"reasoning": "<one concise sentence citing the evidence used>"}.
+\end{lstlisting}
+
+Il messaggio utente ha la forma \texttt{CLAIM: ...} seguita da \texttt{EVIDENCE:} e dall'elenco
+numerato delle evidenze recuperate. Il parser normalizza le varianti che i modelli producono
+spontaneamente (\texttt{SUPPORTS}, \texttt{TRUE}, \texttt{ENTAILMENT} $\to$ SUPPORTED;
+\texttt{REFUTES}, \texttt{FALSE}, \texttt{CONTRADICTION} $\to$ REFUTED; \texttt{NEI},
+\texttt{INSUFFICIENT}, \texttt{UNKNOWN} $\to$ NOT\_ENOUGH\_EVIDENCE) e ripiega su
+NOT\_ENOUGH\_EVIDENCE in assenza di segnale o in caso di errore di rete.
+
+\chapter{Linee guida di annotazione dei qrels}\label{app:qrels}
+Si annota la \textbf{rilevanza del documento rispetto alla query}: non la sua stance, non la sua
+veridicità, non la qualità della fonte. La regola che governa tutte le altre è che
+\textbf{rilevante non significa condivisibile né vero}: un articolo che nega l'origine antropica
+del riscaldamento, se risponde alla query ``\emph{is climate change caused by humans}'', è
+pienamente rilevante.
+
+Il punto critico della scala è il confine fra $0$ e $1$. Definirlo per intenzione (``parla del tema
+ma non ha rapporto con la query'' contro ``tratta il tema ma non risponde'') lo lascia
+operativamente ambiguo, e l'ambiguità morde esattamente dove la query è astratta e il corpus
+tematicamente saturo --- cioè sulle query climatiche, che restano infatti il tema di minore accordo
+(Tabella~\ref{tab:kappa}). La specifica è perciò formulata come \emph{test verificabile sul testo},
+non come descrizione di un'intenzione.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{cX}
+\toprule
+\textbf{Voto} & \textbf{Test operativo} \\
+\midrule
+\textbf{2} & Si sa \emph{indicare la frase} del documento che costituisce la risposta alla query. \\
+\textbf{1} & Non c'è una frase-risposta, ma il documento dà contesto utile o tocca la domanda di
+lato: lo si aprirebbe come terzo o quarto risultato ricavandone qualcosa. \\
+\textbf{0} & Il legame con la query è \emph{solo tematico}: il documento parla del tema ma non della
+domanda. Include il fuori tema puro. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent\textbf{Corollari, dedotti da casi reali del corpus.}
+\begin{itemize}[leftmargin=*]
+  \item Se la query chiede un \textbf{costo}, serve un costo: una cifra, una stima o
+        un'affermazione esplicita su chi paga e quanto. Una disputa su trasferimenti di fondi fra
+        enti pubblici non è il costo di una politica; e il costo \emph{dei danni} non è il costo
+        \emph{della politica}, hanno segno opposto.
+  \item Se la query chiede una \textbf{relazione} fra due cose
+        (clima\,$\leftrightarrow$\,eventi estremi, nucleare\,$\leftrightarrow$\,clima), il testo
+        deve \emph{asserire} la relazione: non basta che entrambi i termini compaiano.
+  \item Se la query chiede un \textbf{rischio} o un \textbf{effetto}, il documento deve parlare di
+        quel rischio, non del tema in cui il rischio esiste. Il fallimento finanziario di un
+        progetto non è un ``rischio dell'energia nucleare'' se il testo non lo inquadra così.
+  \item Il \textbf{duplicato sindacato} prende lo stesso voto della sua copia: il corpus contiene
+        molte riprese della stessa storia d'agenzia, che sono un'unica decisione.
+  \item In dubbio fra $1$ e $0$ si scelga $0$; fra $2$ e $1$ si scelga $1$.
+\end{itemize}
+
+\noindent\textbf{Procedura.} Ogni annotatore compila il proprio foglio senza consultare l'altro
+durante il lavoro: l'accordo misurato su annotazioni allineate strada facendo è gonfiato e non
+significa nulla. Il $\kappa$ si calcola \emph{prima} di qualunque riconciliazione; solo dopo si
+adjudicano le divergenze per produrre i qrels definitivi. Del protocollo è eseguito il primo passo
+--- le due annotazioni cieche e il $\kappa$ (Tabella~\ref{tab:kappa}) ---; l'adjudicazione resta fra
+gli sviluppi (\S\ref{sec:futuri}), e i risultati riportati usano la serie del primo annotatore.
+
+\chapter{Riproducibilità}\label{app:comandi}
+Il sistema è eseguibile a partire dagli indici pre-costruiti; la demo carica risultati precalcolati
+per le query canoniche, così da essere istantanea e non richiedere GPU a runtime.
+
+\begin{lstlisting}
+# ambiente
+uv sync --extra dev
+uv run python -m spacy download en_core_web_sm
+
+# costruzione dei dati (ogni script produce un MANIFEST.json con hash SHA-256)
+uv run --extra data python scripts/build_corpora.py        # corpus news (CC-News)
+uv run python scripts/build_social_corpus.py               # corpus social (tweet)
+uv run python scripts/build_kb.py                          # KB Wikipedia
+uv run python scripts/build_stance_splits.py               # split VAST + SemEval
+uv run --extra data python scripts/index_corpus.py         # indici BM25 + FAISS
+uv run python scripts/build_qrels_annotation.py            # fogli qrels da annotare
+
+# addestramento e valutazione
+uv run python scripts/train_stance.py                      # fine-tuning stance
+uv run python scripts/eval_stance.py                       # benchmark stance
+uv run python scripts/evaluate_pivot.py                    # stance social + diversity
+uv run python scripts/eval_climatefever.py --engine nli    # fact-check, motore NLI
+uv run python scripts/eval_climatefever.py --engine llm    # fact-check, motore LLM
+uv run python scripts/eval_retrieval.py                    # ablazione retrieval
+uv run python scripts/eval_agreement.py                    # kappa fra i due annotatori
+
+# esecuzione e test
+uv run python main.py "risks of nuclear energy" --topic nuclear_energy
+uv run streamlit run dashboard.py
+uv run pytest tests -q                                     # 174 test
+\end{lstlisting}
+
+% =================================================================
+\begin{thebibliography}{99}
+\bibitem{bge} S. Xiao, Z. Liu, P. Zhang, N. Muennighoff. \emph{C-Pack: Packed Resources for General
+  Chinese Embeddings (BGE)}. 2023.
+\bibitem{bm25} S. Robertson, H. Zaragoza. \emph{The Probabilistic Relevance Framework: BM25 and
+  Beyond}. Foundations and Trends in Information Retrieval, 2009.
+\bibitem{mmr} J. Carbonell, J. Goldstein. \emph{The Use of MMR, Diversity-Based Reranking for
+  Reordering Documents and Producing Summaries}. Proc. SIGIR, 1998.
+\bibitem{cinelli} M. Cinelli, G. De Francisci Morales, A. Galeazzi, W. Quattrociocchi, M. Starnini.
+  \emph{The Echo Chamber Effect on Social Media}. PNAS, 2021.
+\bibitem{claimbuster} N. Hassan, F. Arslan, C. Li, M. Tremayne. \emph{Toward Automated
+  Fact-Checking: Detecting Check-worthy Factual Claims by ClaimBuster}. Proc. KDD, 2017.
+\bibitem{climatefever} T. Diggelmann, J. Boyd-Graber, J. Bulian, M. Ciaramita, M. Leippold.
+  \emph{CLIMATE-FEVER: A Dataset for Verification of Real-World Climate Claims}. 2020.
+\bibitem{cohen} J. Cohen. \emph{A Coefficient of Agreement for Nominal Scales}. Educational and
+  Psychological Measurement, 1960.
+\bibitem{deberta} P. He, J. Gao, W. Chen. \emph{DeBERTaV3: Improving DeBERTa using ELECTRA-Style
+  Pre-Training with Gradient-Disentangled Embedding Sharing}. Proc. ICLR, 2023.
+\bibitem{dpr} V. Karpukhin et al. \emph{Dense Passage Retrieval for Open-Domain Question Answering}.
+  Proc. EMNLP, 2020.
+\bibitem{faiss} J. Johnson, M. Douze, H. Jégou. \emph{Billion-scale Similarity Search with GPUs}.
+  IEEE Transactions on Big Data, 2019.
+\bibitem{fever} J. Thorne, A. Vlachos, C. Christodoulopoulos, A. Mittal. \emph{FEVER: a Large-scale
+  Dataset for Fact Extraction and VERification}. Proc. NAACL, 2018.
+\bibitem{pariser} E. Pariser. \emph{The Filter Bubble: What the Internet Is Hiding from You}.
+  Penguin Press, 2011.
+\bibitem{rag} P. Lewis et al. \emph{Retrieval-Augmented Generation for Knowledge-Intensive NLP
+  Tasks}. Proc. NeurIPS, 2020.
+\bibitem{rrf} G. V. Cormack, C. L. A. Clarke, S. Buettcher. \emph{Reciprocal Rank Fusion Outperforms
+  Condorcet and Individual Rank Learning Methods}. Proc. SIGIR, 2009.
+\bibitem{sbert} N. Reimers, I. Gurevych. \emph{Sentence-BERT: Sentence Embeddings using Siamese
+  BERT-Networks}. Proc. EMNLP, 2019.
+\bibitem{semeval} S. Mohammad, S. Kiritchenko, P. Sobhani, X. Zhu, C. Cherry. \emph{SemEval-2016
+  Task~6: Detecting Stance in Tweets}. Proc. SemEval, 2016.
+\bibitem{shannon} C. E. Shannon. \emph{A Mathematical Theory of Communication}. Bell System
+  Technical Journal, 1948.
+\bibitem{vast} E. Allaway, K. McKeown. \emph{Zero-Shot Stance Detection: A Dataset and Model using
+  Generalized Topic Representations (VAST)}. Proc. EMNLP, 2020.
+\bibitem{yin} W. Yin, J. Hay, D. Roth. \emph{Benchmarking Zero-shot Text Classification: Datasets,
+  Evaluation and Entailment Approach}. Proc. EMNLP, 2019.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,342 @@
+{
+  "depth": 20,
+  "rerank_pool": 20,
+  "k_ndcg": 10,
+  "default_alpha": 0.45,
+  "ecosystem": "news",
+  "results": {
+    "davide": {
+      "per_system": {
+        "bm25": {
+          "n_queries": 11,
+          "ndcg@10": 0.6163,
+          "map@20": 0.4882,
+          "recall@20": 0.5834,
+          "judged_frac": 1.0
+        },
+        "dense": {
+          "n_queries": 11,
+          "ndcg@10": 0.6556,
+          "map@20": 0.5384,
+          "recall@20": 0.701,
+          "judged_frac": 1.0
+        },
+        "rrf": {
+          "n_queries": 11,
+          "ndcg@10": 0.6525,
+          "map@20": 0.5351,
+          "recall@20": 0.6707,
+          "judged_frac": 1.0
+        },
+        "fusion_default": {
+          "n_queries": 11,
+          "ndcg@10": 0.6744,
+          "map@20": 0.5557,
+          "recall@20": 0.7021,
+          "judged_frac": 1.0
+        },
+        "fusion_tuned": {
+          "n_queries": 11,
+          "ndcg@10": 0.6439,
+          "map@20": 0.5383,
+          "recall@20": 0.6851,
+          "judged_frac": 0.9864
+        },
+        "fusion_rerank": {
+          "n_queries": 11,
+          "ndcg@10": 0.7154,
+          "map@20": 0.5767,
+          "recall@20": 0.7021,
+          "judged_frac": 1.0
+        }
+      },
+      "chosen_alpha": {
+        "nuclear_energy": 0.1,
+        "climate_change": 0.4,
+        "vaccines": 0.4
+      },
+      "alpha_curve": {
+        "0.1": 0.6611,
+        "0.2": 0.6726,
+        "0.3": 0.6665,
+        "0.4": 0.6768,
+        "0.5": 0.6694,
+        "0.6": 0.6596,
+        "0.7": 0.6494,
+        "0.8": 0.6403,
+        "0.9": 0.6271
+      },
+      "per_topic": {
+        "bm25": {
+          "nuclear_energy": {
+            "ndcg": 0.8003,
+            "ap": 0.5892,
+            "recall": 0.662
+          },
+          "climate_change": {
+            "ndcg": 0.4051,
+            "ap": 0.2996,
+            "recall": 0.4444
+          },
+          "vaccines": {
+            "ndcg": 0.5908,
+            "ap": 0.5285,
+            "recall": 0.6089
+          }
+        },
+        "dense": {
+          "nuclear_energy": {
+            "ndcg": 0.7366,
+            "ap": 0.6127,
+            "recall": 0.7208
+          },
+          "climate_change": {
+            "ndcg": 0.5756,
+            "ap": 0.4093,
+            "recall": 0.6444
+          },
+          "vaccines": {
+            "ndcg": 0.6344,
+            "ap": 0.561,
+            "recall": 0.7237
+          }
+        },
+        "rrf": {
+          "nuclear_energy": {
+            "ndcg": 0.7929,
+            "ap": 0.6466,
+            "recall": 0.7188
+          },
+          "climate_change": {
+            "ndcg": 0.574,
+            "ap": 0.453,
+            "recall": 0.6815
+          },
+          "vaccines": {
+            "ndcg": 0.571,
+            "ap": 0.485,
+            "recall": 0.6145
+          }
+        },
+        "fusion_default": {
+          "nuclear_energy": {
+            "ndcg": 0.8216,
+            "ap": 0.6477,
+            "recall": 0.7057
+          },
+          "climate_change": {
+            "ndcg": 0.579,
+            "ap": 0.4507,
+            "recall": 0.6815
+          },
+          "vaccines": {
+            "ndcg": 0.5989,
+            "ap": 0.5423,
+            "recall": 0.7139
+          }
+        },
+        "fusion_tuned": {
+          "nuclear_energy": {
+            "ndcg": 0.7477,
+            "ap": 0.6099,
+            "recall": 0.7064
+          },
+          "climate_change": {
+            "ndcg": 0.5635,
+            "ap": 0.4245,
+            "recall": 0.6037
+          },
+          "vaccines": {
+            "ndcg": 0.6003,
+            "ap": 0.552,
+            "recall": 0.7248
+          }
+        },
+        "fusion_rerank": {
+          "nuclear_energy": {
+            "ndcg": 0.82,
+            "ap": 0.6228,
+            "recall": 0.7057
+          },
+          "climate_change": {
+            "ndcg": 0.567,
+            "ap": 0.4567,
+            "recall": 0.6815
+          },
+          "vaccines": {
+            "ndcg": 0.722,
+            "ap": 0.6207,
+            "recall": 0.7139
+          }
+        }
+      }
+    },
+    "giuseppe": {
+      "per_system": {
+        "bm25": {
+          "n_queries": 11,
+          "ndcg@10": 0.6429,
+          "map@20": 0.4938,
+          "recall@20": 0.6037,
+          "judged_frac": 1.0
+        },
+        "dense": {
+          "n_queries": 11,
+          "ndcg@10": 0.7187,
+          "map@20": 0.5634,
+          "recall@20": 0.6992,
+          "judged_frac": 1.0
+        },
+        "rrf": {
+          "n_queries": 11,
+          "ndcg@10": 0.704,
+          "map@20": 0.548,
+          "recall@20": 0.6732,
+          "judged_frac": 1.0
+        },
+        "fusion_default": {
+          "n_queries": 11,
+          "ndcg@10": 0.7227,
+          "map@20": 0.5706,
+          "recall@20": 0.7075,
+          "judged_frac": 1.0
+        },
+        "fusion_tuned": {
+          "n_queries": 11,
+          "ndcg@10": 0.7193,
+          "map@20": 0.5738,
+          "recall@20": 0.6995,
+          "judged_frac": 0.9818
+        },
+        "fusion_rerank": {
+          "n_queries": 11,
+          "ndcg@10": 0.7793,
+          "map@20": 0.601,
+          "recall@20": 0.7075,
+          "judged_frac": 1.0
+        }
+      },
+      "chosen_alpha": {
+        "nuclear_energy": 0.1,
+        "climate_change": 0.2,
+        "vaccines": 0.2
+      },
+      "alpha_curve": {
+        "0.1": 0.7197,
+        "0.2": 0.7314,
+        "0.3": 0.7249,
+        "0.4": 0.7207,
+        "0.5": 0.7124,
+        "0.6": 0.7096,
+        "0.7": 0.6959,
+        "0.8": 0.6922,
+        "0.9": 0.6719
+      },
+      "per_topic": {
+        "bm25": {
+          "nuclear_energy": {
+            "ndcg": 0.7701,
+            "ap": 0.5635,
+            "recall": 0.6631
+          },
+          "climate_change": {
+            "ndcg": 0.4608,
+            "ap": 0.3394,
+            "recall": 0.5056
+          },
+          "vaccines": {
+            "ndcg": 0.6522,
+            "ap": 0.5399,
+            "recall": 0.618
+          }
+        },
+        "dense": {
+          "nuclear_energy": {
+            "ndcg": 0.8309,
+            "ap": 0.647,
+            "recall": 0.7373
+          },
+          "climate_change": {
+            "ndcg": 0.6258,
+            "ap": 0.4508,
+            "recall": 0.6176
+          },
+          "vaccines": {
+            "ndcg": 0.676,
+            "ap": 0.5642,
+            "recall": 0.7222
+          }
+        },
+        "rrf": {
+          "nuclear_energy": {
+            "ndcg": 0.8338,
+            "ap": 0.6616,
+            "recall": 0.7449
+          },
+          "climate_change": {
+            "ndcg": 0.5882,
+            "ap": 0.4801,
+            "recall": 0.688
+          },
+          "vaccines": {
+            "ndcg": 0.661,
+            "ap": 0.4853,
+            "recall": 0.5903
+          }
+        },
+        "fusion_default": {
+          "nuclear_energy": {
+            "ndcg": 0.868,
+            "ap": 0.6519,
+            "recall": 0.7179
+          },
+          "climate_change": {
+            "ndcg": 0.582,
+            "ap": 0.4723,
+            "recall": 0.688
+          },
+          "vaccines": {
+            "ndcg": 0.6829,
+            "ap": 0.5631,
+            "recall": 0.7118
+          }
+        },
+        "fusion_tuned": {
+          "nuclear_energy": {
+            "ndcg": 0.8317,
+            "ap": 0.6553,
+            "recall": 0.752
+          },
+          "climate_change": {
+            "ndcg": 0.6194,
+            "ap": 0.4764,
+            "recall": 0.65
+          },
+          "vaccines": {
+            "ndcg": 0.6819,
+            "ap": 0.5653,
+            "recall": 0.6841
+          }
+        },
+        "fusion_rerank": {
+          "nuclear_energy": {
+            "ndcg": 0.8517,
+            "ap": 0.6121,
+            "recall": 0.7179
+          },
+          "climate_change": {
+            "ndcg": 0.6666,
+            "ap": 0.5215,
+            "recall": 0.688
+          },
+          "vaccines": {
+            "ndcg": 0.7913,
+            "ap": 0.6497,
+            "recall": 0.7118
+          }
+        }
+      }
+    }
+  },
+  "kendall_tau_ndcg": 0.7333
+}

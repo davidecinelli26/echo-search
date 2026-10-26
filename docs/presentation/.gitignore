@@ -1,0 +1,11 @@
+# Ausiliari LaTeX (rigenerati a ogni compilazione)
+*.aux
+*.log
+*.nav
+*.snm
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.vrb
+*.synctex.gz

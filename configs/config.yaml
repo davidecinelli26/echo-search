@@ -1,0 +1,91 @@
+# ============================================================
+# Echo-Search — iperparametri del sistema
+# ============================================================
+# Ogni valore che il codice legge sta qui, con accanto la ragione per cui è
+# quello e non un altro. Nessun numero magico nei moduli.
+# Temi, target e query canoniche stanno in topics.yaml; il registro delle fonti
+# in sources.yaml.
+
+# --- Corpus ---
+corpus:
+  chunk_size: 512                       # limite di contesto degli encoder BERT-like
+  chunk_overlap: 128
+  # Overlap al 25%: con un overlap piccolo le affermazioni a cavallo di due
+  # chunk vanno perse. 128 su 512 è il valore del RAG paper (Lewis et al. 2020).
+
+# --- Retrieval, stadio 1: recupero ---
+bm25:
+  k1: 1.2                               # saturazione della term frequency, valore standard
+  b: 0.60
+  # b più basso del canonico 0,75: gli articoli giornalistici sono tutti lunghi,
+  # e penalizzare la lunghezza scarterebbe proprio i pezzi ricchi di evidenze.
+
+dense:
+  model_name: "BAAI/bge-base-en-v1.5"
+  query_prefix: "Represent this sentence for searching relevant passages: "
+  # bge è asimmetrico: l'istruzione va SOLO sulle query, mai sui passaggi.
+  # Metterla da entrambe le parti è un errore comune e degrada la qualità.
+
+fusion:
+  alpha: 0.45                           # peso del ramo lessicale (BM25)
+  beta: 0.55                            # peso del ramo denso;  alpha + beta = 1
+  # alpha < beta perché su un dibattito conta la comprensione di sinonimi e
+  # parafrasi; BM25 resta indispensabile sui termini tecnici ("PWR reactor",
+  # "CO2 ppm"). L'ablazione mostra che la metrica è piatta fra 0,1 e 0,5:
+  # questo valore è entro lo 0,4% dall'ottimo misurabile.
+  normalization: "min_max"              # i due punteggi vivono su scale diverse
+  top_k: 20
+
+# --- Retrieval, stadio 2: riordino per pertinenza ---
+reranker:
+  # Cross-encoder: legge query e documento INSIEME, quindi è molto più accurato
+  # e molto più costoso. Per questo si applica ai soli candidati dello stadio 1.
+  model_name: "BAAI/bge-reranker-base"
+  top_n: 30
+
+# --- Stance detection ---
+stance_detection:
+  model_name: "data/models/stance-deberta-v3-base"
+  # DeBERTa-v3-base con fine-tuning completo su VAST + SemEval-2016 Task 6.
+  # Se il percorso non esiste il detector ripiega su zero-shot, molto più debole
+  # (Macro-F1 0,390 contro 0,771): rigenerarlo con scripts/train_stance.py.
+  batch_size: 16
+
+# --- Fact-checking, tre fasi ---
+fact_checking:
+  # Fase 1 — estrazione delle claim
+  spacy_model: "en_core_web_sm"         # serve il parser (doc.sents) e il NER
+  # Fase 2 — evidenze dalla KB Wikipedia, recupero semantico
+  evidence_top_k: 5
+  relevance_threshold: 0.62
+  # Cancello di pertinenza: sotto questa cosine nessun motore viene interrogato.
+  # Su una KB tematica il retrieval restituisce SEMPRE qualcosa, e un'evidenza
+  # solo tematica diventa un falso REFUTED — l'errore peggiore per un sistema
+  # che mostra verdetti a un lettore.
+  # Fase 3 — verdetto NLI (il modello è addestrato su FEVER, cioè su questo compito)
+  nli_model: "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
+  support_threshold: 0.75
+  refute_threshold: 0.95
+  # Soglie ASIMMETRICHE, deliberatamente: dichiarare falso per errore un
+  # documento reale è più grave che lasciarsi sfuggire una conferma.
+
+llm_fact_checking:
+  # Motore di verdetto alternativo: un LLM locale ragiona sulle stesse evidenze.
+  # Le prime due fasi restano identiche, quindi la differenza di prestazioni
+  # misurata su ClimateFEVER è attribuibile al motore e non al recupero.
+  model: "qwen2.5:7b"                   # miglior <=10B su ragionamento + JSON
+  ollama_host: "http://localhost:11434" # tutto in locale, nessuna API remota
+  temperature: 0.0                      # deterministico: la demo dev'essere riproducibile
+  timeout_s: 180
+  evidence_top_k: 5
+
+# --- Sintesi ---
+summarization:
+  model_name: "google/flan-t5-base"
+  extractive_top_sentences: 10          # riduce l'input sotto la finestra di contesto
+  # Beam search puro: la stessa colonna deve produrre sempre lo stesso riassunto.
+  # La temperatura non compare perché avrebbe effetto solo con do_sample attivo.
+  num_beams: 4
+  do_sample: false
+  no_repeat_ngram_size: 3               # i testi tecnici ripetitivi inducono loop
+  max_new_tokens: 200

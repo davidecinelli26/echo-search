@@ -1,0 +1,539 @@
+{
+  "ecosystem": "news",
+  "depth": 20,
+  "rerank_pool": 20,
+  "seed": 42,
+  "runs": [
+    "bm25",
+    "dense",
+    "rrf",
+    "fusion",
+    "rerank_pool"
+  ],
+  "provenance": {
+    "is climate change caused by humans": {
+      "climate_change-0462": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0424": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0146": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0450": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0474": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0338": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0582": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0682": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0454": [
+        "bm25"
+      ],
+      "climate_change-0236": [
+        "bm25"
+      ],
+      "climate_change-0141": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0247": [
+        "bm25"
+      ],
+      "climate_change-0429": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0593": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0246": [
+        "bm25"
+      ],
+      "climate_change-0400": [
+        "bm25"
+      ],
+      "climate_change-0404": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0408": [
+        "bm25"
+      ],
+      "climate_change-0375": [
+        "bm25"
+      ],
+      "climate_change-0484": [
+        "bm25"
+      ],
+      "climate_change-0034": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0016": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0266": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0464": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0248": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0102": [
+        "dense"
+      ],
+      "climate_change-0105": [
+        "dense"
+      ],
+      "climate_change-0235": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0145": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0230": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0127": [
+        "dense"
+      ],
+      "climate_change-0188": [
+        "dense"
+      ],
+      "climate_change-0449": [
+        "dense"
+      ],
+      "climate_change-0427": [
+        "dense"
+      ],
+      "climate_change-0515": [
+        "dense"
+      ],
+      "climate_change-0385": [
+        "dense"
+      ],
+      "climate_change-0337": [
+        "dense"
+      ],
+      "climate_change-0232": [
+        "rrf"
+      ],
+      "climate_change-0436": [
+        "rrf"
+      ]
+    },
+    "economic cost of climate policy": {
+      "climate_change-0512": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0137": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0750": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0210": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0208": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0407": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0584": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0251": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0409": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0243": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0661": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0446": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0734": [
+        "bm25"
+      ],
+      "climate_change-0136": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0213": [
+        "bm25"
+      ],
+      "climate_change-0532": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0574": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0058": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0281": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0651": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0721": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0587": [
+        "dense"
+      ],
+      "climate_change-0547": [
+        "dense"
+      ],
+      "climate_change-0060": [
+        "dense"
+      ],
+      "climate_change-0215": [
+        "dense"
+      ],
+      "climate_change-0485": [
+        "dense"
+      ],
+      "climate_change-0052": [
+        "dense"
+      ],
+      "climate_change-0118": [
+        "dense"
+      ],
+      "climate_change-0673": [
+        "dense"
+      ],
+      "climate_change-0729": [
+        "dense"
+      ],
+      "climate_change-0383": [
+        "dense"
+      ],
+      "climate_change-0376": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0230": [
+        "rrf"
+      ]
+    },
+    "climate change and extreme weather": {
+      "climate_change-0573": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0141": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0504": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0188": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0575": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0593": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0237": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0793": [
+        "bm25"
+      ],
+      "climate_change-0356": [
+        "bm25"
+      ],
+      "climate_change-0305": [
+        "bm25"
+      ],
+      "climate_change-0341": [
+        "bm25"
+      ],
+      "climate_change-0782": [
+        "bm25"
+      ],
+      "climate_change-0516": [
+        "bm25"
+      ],
+      "climate_change-0246": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0385": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0351": [
+        "bm25"
+      ],
+      "climate_change-0261": [
+        "bm25"
+      ],
+      "climate_change-0429": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0741": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0143": [
+        "bm25"
+      ],
+      "climate_change-0337": [
+        "dense"
+      ],
+      "climate_change-0431": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0443": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0660": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0645": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0178": [
+        "dense"
+      ],
+      "climate_change-0045": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0480": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0248": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0073": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "climate_change-0594": [
+        "dense"
+      ],
+      "climate_change-0072": [
+        "dense",
+        "rrf"
+      ],
+      "climate_change-0102": [
+        "dense"
+      ],
+      "climate_change-0105": [
+        "dense"
+      ],
+      "climate_change-0450": [
+        "dense"
+      ],
+      "climate_change-0427": [
+        "dense"
+      ],
+      "climate_change-0522": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ]
+    }
+  }
+}

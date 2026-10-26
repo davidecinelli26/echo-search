@@ -1,0 +1,697 @@
+{
+  "ecosystem": "news",
+  "depth": 20,
+  "rerank_pool": 20,
+  "seed": 42,
+  "runs": [
+    "bm25",
+    "dense",
+    "rrf",
+    "fusion",
+    "rerank_pool"
+  ],
+  "provenance": {
+    "risks of nuclear energy": {
+      "nuclear_energy-0229": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0059": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0028": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0251": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0282": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0281": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0188": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0143": [
+        "bm25"
+      ],
+      "nuclear_energy-0142": [
+        "bm25"
+      ],
+      "nuclear_energy-0358": [
+        "bm25"
+      ],
+      "nuclear_energy-0392": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0385": [
+        "bm25"
+      ],
+      "nuclear_energy-0131": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0391": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0401": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0210": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0376": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0195": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0386": [
+        "bm25"
+      ],
+      "nuclear_energy-0400": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0105": [
+        "dense"
+      ],
+      "nuclear_energy-0387": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0286": [
+        "dense",
+        "rrf"
+      ],
+      "nuclear_energy-0080": [
+        "dense"
+      ],
+      "nuclear_energy-0134": [
+        "dense",
+        "rrf"
+      ],
+      "nuclear_energy-0196": [
+        "dense"
+      ],
+      "nuclear_energy-0026": [
+        "dense"
+      ],
+      "nuclear_energy-0245": [
+        "dense"
+      ],
+      "nuclear_energy-0007": [
+        "dense"
+      ],
+      "nuclear_energy-0103": [
+        "dense"
+      ],
+      "nuclear_energy-0127": [
+        "dense",
+        "rrf"
+      ],
+      "nuclear_energy-0049": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0292": [
+        "dense"
+      ],
+      "nuclear_energy-0276": [
+        "dense",
+        "rrf"
+      ],
+      "nuclear_energy-0172": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0275": [
+        "rrf"
+      ],
+      "nuclear_energy-0029": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0112": [
+        "fusion",
+        "rerank_pool"
+      ]
+    },
+    "is nuclear power safe": {
+      "nuclear_energy-0379": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0049": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0127": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0212": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0155": [
+        "bm25"
+      ],
+      "nuclear_energy-0251": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0247": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0188": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0286": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0214": [
+        "bm25"
+      ],
+      "nuclear_energy-0029": [
+        "bm25",
+        "rrf"
+      ],
+      "nuclear_energy-0133": [
+        "bm25"
+      ],
+      "nuclear_energy-0253": [
+        "bm25"
+      ],
+      "nuclear_energy-0052": [
+        "bm25"
+      ],
+      "nuclear_energy-0126": [
+        "bm25"
+      ],
+      "nuclear_energy-0225": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0190": [
+        "bm25"
+      ],
+      "nuclear_energy-0180": [
+        "bm25"
+      ],
+      "nuclear_energy-0220": [
+        "bm25"
+      ],
+      "nuclear_energy-0179": [
+        "bm25",
+        "rrf"
+      ],
+      "nuclear_energy-0105": [
+        "dense",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0245": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0392": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0080": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0134": [
+        "dense"
+      ],
+      "nuclear_energy-0292": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0391": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0289": [
+        "dense"
+      ],
+      "nuclear_energy-0026": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0196": [
+        "dense"
+      ],
+      "nuclear_energy-0007": [
+        "dense"
+      ],
+      "nuclear_energy-0387": [
+        "dense"
+      ],
+      "nuclear_energy-0167": [
+        "dense"
+      ],
+      "nuclear_energy-0203": [
+        "dense"
+      ],
+      "nuclear_energy-0219": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0401": [
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0202": [
+        "rrf"
+      ],
+      "nuclear_energy-0172": [
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0210": [
+        "fusion",
+        "rerank_pool"
+      ]
+    },
+    "nuclear energy and climate change": {
+      "nuclear_energy-0251": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0363": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0007": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0062": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0356": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0393": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0134": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0147": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0392": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0018": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0227": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0263": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0387": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0226": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0166": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0173": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0122": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0275": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0276": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0271": [
+        "bm25"
+      ],
+      "nuclear_energy-0286": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0208": [
+        "dense"
+      ],
+      "nuclear_energy-0207": [
+        "dense"
+      ],
+      "nuclear_energy-0105": [
+        "dense"
+      ],
+      "nuclear_energy-0154": [
+        "dense"
+      ],
+      "nuclear_energy-0313": [
+        "dense"
+      ],
+      "nuclear_energy-0274": [
+        "dense"
+      ],
+      "nuclear_energy-0188": [
+        "dense"
+      ],
+      "nuclear_energy-0029": [
+        "dense",
+        "rrf"
+      ]
+    },
+    "nuclear waste disposal": {
+      "nuclear_energy-0223": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0182": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0248": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0212": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0297": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0229": [
+        "bm25",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0285": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0146": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0299": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0012": [
+        "bm25",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0247": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0346": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0392": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0241": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0082": [
+        "bm25"
+      ],
+      "nuclear_energy-0214": [
+        "bm25"
+      ],
+      "nuclear_energy-0379": [
+        "bm25"
+      ],
+      "nuclear_energy-0156": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0032": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0281": [
+        "bm25",
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0360": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0282": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0251": [
+        "dense",
+        "rrf",
+        "fusion",
+        "rerank_pool"
+      ],
+      "nuclear_energy-0261": [
+        "dense"
+      ],
+      "nuclear_energy-0313": [
+        "dense"
+      ],
+      "nuclear_energy-0135": [
+        "dense"
+      ],
+      "nuclear_energy-0157": [
+        "dense"
+      ],
+      "nuclear_energy-0354": [
+        "dense"
+      ],
+      "nuclear_energy-0020": [
+        "dense"
+      ],
+      "nuclear_energy-0213": [
+        "rrf"
+      ],
+      "nuclear_energy-0306": [
+        "rrf"
+      ]
+    }
+  }
+}

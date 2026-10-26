@@ -1,0 +1,59 @@
+# ============================================================
+# Echo-Search — Temi divisivi, target di stance e query canoniche
+# ============================================================
+# Usato da: costruzione corpora (Fase 1), valutazione retrieval, demo.
+# I `keywords` filtrano CC-News (match case-insensitive su titolo+testo);
+# `target` è il topic passato allo Stance Detector; `queries` sono le query
+# canoniche per validation/test del retrieval e per la demo.
+
+topics:
+  nuclear_energy:
+    label: "Nuclear energy"
+    target: "nuclear energy"
+    keywords:
+      - "nuclear energy"
+      - "nuclear power"
+      - "nuclear reactor"
+      - "nuclear plant"
+      - "atomic energy"
+      - "nuclear waste"
+    queries:
+      - "risks of nuclear energy"
+      - "is nuclear power safe"
+      - "nuclear energy and climate change"
+      - "nuclear waste disposal"
+
+  climate_change:
+    label: "Climate change"
+    target: "global warming"   # stance: 'global warming' > 'climate change' su AGAINST-recall (51%->78%, diagnosi 25/07)
+    keywords:
+      - "climate change"
+      - "global warming"
+      - "greenhouse gas"
+      - "carbon emissions"
+      - "co2 emissions"
+      - "climate crisis"
+    queries:
+      - "is climate change caused by humans"
+      - "economic cost of climate policy"
+      - "climate change and extreme weather"
+
+  vaccines:
+    label: "Vaccines / public health"
+    target: "vaccine safety"   # stance: target GENERALE del tema; 'COVID-19 vaccination' gonfiava la diversity news a 0.69>social (irreale) senza migliorare AGAINST-recall (validato 25/07)
+    keywords:
+      - "vaccine"
+      - "vaccination"
+      - "immunization"
+      - "vaccine mandate"
+      - "vaccine side effect"
+    queries:
+      - "are vaccines safe"
+      - "vaccine side effects"
+      - "vaccine mandates"
+      - "do vaccines cause autism"     # claim falsa nota — banco di prova del fact-checker
+
+# Valutazione di generalizzazione (Fase 3): train su due temi, test sul terzo mai visto.
+leave_one_topic_out:
+  train: ["nuclear_energy", "climate_change"]
+  test: "vaccines"

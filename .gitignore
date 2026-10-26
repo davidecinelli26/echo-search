@@ -1,0 +1,29 @@
+.venv/
+uv.lock
+
+# Cache e artefatti di build
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Indici generati da scripts/index_corpus.py
+data/processed/
+
+# Corpora e KB: testi rigenerabili dagli script (build_corpora.py / build_kb.py).
+# Versioniamo solo i MANIFEST (metadati + hash).
+data/corpora/*.jsonl
+data/kb/*.jsonl
+data/stance/*.jsonl
+
+# Modelli fine-tuned: artefatti pesanti rigenerabili con scripts/train_stance.py
+data/models/
+
+# Gold set annotato a mano: lavoro umano NON rigenerabile -> versionato,
+# fuori dal pattern data/stance/*.jsonl
+!data/gold/
+
+# Archivi del progetto, segreti e configurazioni locali
+*.zip
+.env
+.streamlit/secrets.toml
+.claude/

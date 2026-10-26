@@ -1,0 +1,84 @@
+{
+  "dataset": "vblagoje/cc_news",
+  "limit_per_topic": 800,
+  "articles_scanned": 708241,
+  "topics": {
+    "nuclear_energy": {
+      "count": 403,
+      "sha256": "c329aa5bdc0a1d6b208310547d094060a42c3ba00fbfa0d4da0a0b592442c4b5",
+      "by_orientation": {
+        "unknown": 351,
+        "lean_left": 11,
+        "center": 24,
+        "right": 17
+      },
+      "by_tier": {
+        "3": 365,
+        "2": 38
+      },
+      "top_domains": {
+        "uk.reuters.com": 46,
+        "reuters.com": 19,
+        "dailymail.co.uk": 13,
+        "sputniknews.com": 7,
+        "japantimes.co.jp": 7,
+        "in.reuters.com": 6,
+        "seekingalpha.com": 5,
+        "taiwannews.com.tw": 4,
+        "channelnewsasia.com": 4,
+        "taipeitimes.com": 4
+      }
+    },
+    "climate_change": {
+      "count": 800,
+      "sha256": "fe04d5acc474cf03d8d2edad54c187cebecdb3e12804389dcc5f9d54977b5f96",
+      "by_orientation": {
+        "unknown": 745,
+        "lean_left": 49,
+        "right": 6
+      },
+      "by_tier": {
+        "3": 751,
+        "2": 49
+      },
+      "top_domains": {
+        "uk.reuters.com": 79,
+        "eurekalert.org": 30,
+        "channelnewsasia.com": 28,
+        "nzherald.co.nz": 17,
+        "nationalpost.com": 16,
+        "abcnews.go.com": 14,
+        "nbcnews.com": 14,
+        "yahoo.com": 12,
+        "sci-tech-today.com": 12,
+        "wattsupwiththat.com": 12
+      }
+    },
+    "vaccines": {
+      "count": 714,
+      "sha256": "b21c4635fe75630ec44eace6389ab5bb92071328cf2a73210bfcd50314319bbf",
+      "by_orientation": {
+        "unknown": 643,
+        "lean_left": 43,
+        "right": 19,
+        "center": 9
+      },
+      "by_tier": {
+        "3": 661,
+        "2": 53
+      },
+      "top_domains": {
+        "nbcnews.com": 19,
+        "dailymail.co.uk": 15,
+        "uk.reuters.com": 13,
+        "newswise.com": 12,
+        "channelnewsasia.com": 11,
+        "indianexpress.com": 10,
+        "rappler.com": 9,
+        "eurekalert.org": 9,
+        "cbc.ca": 9,
+        "cnn.com": 9
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "sources": [
+    "vast",
+    "semeval(tweet_eval)"
+  ],
+  "splits": {
+    "train": {
+      "count": 16097,
+      "sha256": "a6d7cbac3cb738145b212ee82391cdbf7a2987b83668a431242392b76b68d14e",
+      "by_label": {
+        "AGAINST": 6849,
+        "FAVOR": 6005,
+        "NEUTRAL": 3243
+      },
+      "by_source": {
+        "vast": 13477,
+        "semeval": 2620
+      },
+      "n_targets": 4644
+    },
+    "test": {
+      "count": 4255,
+      "sha256": "9fb9653fc95cc1228a806e6dac7c93175ac1433819f77fcfb160e0ed43a88b04",
+      "by_label": {
+        "FAVOR": 1248,
+        "AGAINST": 1733,
+        "NEUTRAL": 1274
+      },
+      "by_source": {
+        "vast": 3006,
+        "semeval": 1249
+      },
+      "n_targets": 763
+    }
+  }
+}

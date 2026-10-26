@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "echo-search"
+version = "1.0.0"
+description = "Motore di ricerca multi-prospettiva per temi divisivi, con misura di echo chamber"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Recupero lessicale e preprocessing
+    "rank-bm25==0.2.2",
+    "spacy==3.7.4",
+    "nltk==3.8.1",
+    "en-core-web-sm",
+    # Recupero denso, reranking e modelli NLP
+    "sentence-transformers==2.7.0",
+    "transformers==4.40.0",
+    "torch==2.2.2",
+    "sentencepiece>=0.2.2",         # tokenizer di DeBERTa-v3 e XLM-R
+    "faiss-cpu==1.8.0",
+    # Configurazione, calcolo numerico e interfaccia
+    "pyyaml==6.0.1",
+    "numpy==1.26.4",
+    "streamlit>=1.50.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.2.0",
+    "pytest-cov==5.0.0",
+]
+# Serve solo agli script di costruzione dei dati (CC-News, VAST, ClimateFEVER),
+# non alla pipeline online: si installa con `uv sync --extra data`.
+data = [
+    "datasets>=4.5.0",
+]
+
+[project.scripts]
+echo-search = "src.app:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.uv.sources]
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" }

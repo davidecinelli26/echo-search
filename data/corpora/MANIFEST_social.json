@@ -1,0 +1,26 @@
+{
+  "sources": {
+    "climate_change": "https://raw.githubusercontent.com/edwardcqian/climate_change_sentiment/master/data/sample_data.csv",
+    "vaccines": "https://raw.githubusercontent.com/sohampoddar26/covid-vax-stance/main/dataset/our_labelled_data.csv"
+  },
+  "topics": {
+    "climate_change": {
+      "count": 999,
+      "sha256": "45bc718990c7b7eb4a77627e06aaf3bac798ed20ffbaf45db9930b7d816b7c29",
+      "by_stance": {
+        "AGAINST": 333,
+        "FAVOR": 333,
+        "NEUTRAL": 333
+      }
+    },
+    "vaccines": {
+      "count": 870,
+      "sha256": "884e806355427346e4ba002de8305bed0cf98767f6c1010f56d6a5436e3a732c",
+      "by_stance": {
+        "AGAINST": 290,
+        "FAVOR": 290,
+        "NEUTRAL": 290
+      }
+    }
+  }
+}
