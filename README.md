@@ -1,78 +1,78 @@
 # Echo-Search
 
-**Un motore di ricerca che, sui temi divisivi, non ti chiude in una sola prospettiva.**
+**A search engine that, on divisive topics, doesn't lock you into a single perspective.**
 
-Progetto per il corso di *Information Retrieval e Natural Language Processing* — Università della Calabria, A.A. 2025/2026.
+Project for the *Information Retrieval and Natural Language Processing* course, University of Calabria, A.Y. 2025/2026.
 [Davide Cinelli](https://github.com/davidecinelli26) · [Giuseppe Cuiuri](https://github.com/GiuseppeCuiuri)
 
 ---
 
-## Il problema
+## The problem
 
-Un motore di ricerca ottimizza la **pertinenza**, non la **diversità**: non è il suo compito. Su un tema divisivo questo ha una conseguenza precisa — la query porta con sé un'inclinazione, anche solo nelle parole scelte, e il ranking la amplifica.
+A search engine optimizes **relevance**, not **diversity**: that is not its job. On a divisive topic this has a precise consequence: the query carries a slant, even just in the words chosen, and the ranking amplifies it.
 
-Echo-Search risponde con tre mosse:
+Echo-Search answers with three moves:
 
-1. **I risultati non sono una lista, sono tre colonne** affiancate — a favore, neutrale, contrario.
-2. **L'omogeneità diventa un numero**: la *Stance Diversity*, entropia di Shannon normalizzata sulle posizioni dei documenti recuperati.
-3. **La stessa identica pipeline gira su due ecosistemi**, articoli di cronaca e tweet, così che i due numeri siano confrontabili.
+1. **Results are not a list, they are three columns** side by side: in favor, neutral, against.
+2. **Homogeneity becomes a number**: the *Stance Diversity*, the normalized Shannon entropy of the stances of the retrieved documents.
+3. **The exact same pipeline runs on two ecosystems**, news articles and tweets, so that the two numbers are comparable.
 
-Tre temi: energia nucleare, cambiamento climatico, vaccini. Tutto in locale, entro 6 GB di VRAM, senza API a pagamento.
+Three topics: nuclear energy, climate change, vaccines. Everything runs locally, within 6 GB of VRAM, with no paid APIs.
 
 ---
 
-## Architettura
+## Architecture
 
 ```
-                                   ┌─ stance (DeBERTa-v3 FT) ─→ colonne ─→ diversity
-corpus ─→ retrieval ibrido ─→ doc ─┤                                    └→ riassunti
+                                   ┌─ stance (DeBERTa-v3 FT) ─→ columns ─→ diversity
+corpus ─→ hybrid retrieval ─→ doc ─┤                                    └→ summaries
           BM25 ⊕ bge/FAISS         └─ fact-check (NLI | LLM) ────────────→ dashboard
              + reranker
 ```
 
-Stance e fact-check sono **rami indipendenti** sugli stessi documenti: non si scambiano nulla. È ciò che tiene il fact-checking — di gran lunga il modulo più lento — fuori dal cammino critico.
+Stance and fact-check are **independent branches** over the same documents: they exchange nothing. This is what keeps fact-checking, by far the slowest module, off the critical path.
 
-**Retrieval a due stadi.** Il primo *recupera*: BM25 (`b = 0,60`, i documenti sono tutti lunghi) fuso con un retrieval denso `bge-base` su indice FAISS, punteggi normalizzati min-max e combinati con α = 0,45. Il secondo *riordina*: un cross-encoder `bge-reranker` legge query e documento insieme sui soli 50 candidati. Il tetto del reranker è il recall del primo stadio.
+**Two-stage retrieval.** The first stage *retrieves*: BM25 (`b = 0.60`, since all documents are long) fused with `bge-base` dense retrieval on a FAISS index, with min-max normalized scores combined at α = 0.45. The second stage *reorders*: a `bge-reranker` cross-encoder reads query and document together, on the top 50 candidates only. The ceiling of the reranker is the recall of the first stage.
 
-**Stance detection.** `DeBERTa-v3-base` con fine-tuning completo su VAST ∪ SemEval-2016 (16 097 esempi, 4 644 target distinti). La generalizzazione a temi mai visti viene dalla varietà dei target in addestramento, non da accorgimenti architetturali.
+**Stance detection.** `DeBERTa-v3-base`, fully fine-tuned on VAST ∪ SemEval-2016 (16,097 examples, 4,644 distinct targets). Generalization to unseen topics comes from the variety of targets in training, not from architectural tricks.
 
-**Fact-checking in tre fasi**, di cui le prime due condivise e la terza sostituibile:
+**Three-phase fact-checking**, of which the first two are shared and the third is swappable:
 
-| Fase | Modulo | Cosa fa |
+| Phase | Module | What it does |
 |---|---|---|
-| 1 | `nlp/claims.py` | estrae l'affermazione più verificabile del documento |
-| 2 | `nlp/kb_evidence.py` | cerca le evidenze nella KB Wikipedia e applica il **cancello di pertinenza** |
-| 3 | `nlp/nli_verdict.py` **oppure** `nlp/llm_verdict.py` | emette il verdetto |
+| 1 | `nlp/claims.py` | extracts the most verifiable claim of the document |
+| 2 | `nlp/kb_evidence.py` | searches the Wikipedia KB for evidence and applies the **relevance gate** |
+| 3 | `nlp/nli_verdict.py` **or** `nlp/llm_verdict.py` | issues the verdict |
 
-Il cancello è la parte che conta: su una base tematica il retrieval restituisce *sempre* qualcosa, e un'evidenza solo tematica diventa un falso REFUTED. Sotto la soglia di somiglianza nessun motore viene interrogato. Poiché cambia solo la terza fase, la differenza misurata fra NLI e LLM è attribuibile al motore e non al recupero.
+The gate is the part that matters: on a topical knowledge base, retrieval *always* returns something, and evidence that is only on-topic becomes a false REFUTED. Below the similarity threshold no engine is queried. Since only the third phase changes, the measured difference between NLI and LLM is attributable to the engine and not to retrieval.
 
 ---
 
-## Risultati
+## Results
 
-| Componente | Benchmark | Risultato |
+| Component | Benchmark | Result |
 |---|---|---|
-| Retrieval, ablazione a 6 sistemi | qrels propri, 380 coppie | **NDCG@10 0,715** (fusione + reranking) |
-| Accordo fra annotatori | 2 annotatori umani in cieco | **κ quadratico 0,867** (*almost perfect*) |
-| Stance detection | VAST ∪ SemEval, test held-out | **Macro-F1 0,771** (zero-shot: 0,390) |
-| Stance, cross-dataset | VAST / SemEval | 0,768 / 0,741 |
-| Fact-check, motore NLI | ClimateFEVER, 1381 claim | Macro-F1 0,350 |
-| Fact-check, motore LLM | ClimateFEVER, 1381 claim | **Macro-F1 0,640** |
-| Stance Diversity | query canoniche | news 0,229–0,545 · social 0,600–0,621 |
+| Retrieval, 6-system ablation | own qrels, 380 pairs | **NDCG@10 0.715** (fusion + reranking) |
+| Inter-annotator agreement | 2 blind human annotators | **quadratic κ 0.867** (*almost perfect*) |
+| Stance detection | VAST ∪ SemEval, held-out test | **Macro-F1 0.771** (zero-shot: 0.390) |
+| Stance, cross-dataset | VAST / SemEval | 0.768 / 0.741 |
+| Fact-check, NLI engine | ClimateFEVER, 1,381 claims | Macro-F1 0.350 |
+| Fact-check, LLM engine | ClimateFEVER, 1,381 claims | **Macro-F1 0.640** |
+| Stance Diversity | canonical queries | news 0.229–0.545 · social 0.600–0.621 |
 
-Tre cose che i numeri dicono, e una che non dicono.
+Three things the numbers say, and one they don't.
 
-Il **reranking** è il contributo singolo più grande (+6,1% di NDCG, a recall invariato: riordina, non recupera). **Tarare α peggiora**: con 11 query la curva è piatta e la ricerca a griglia seleziona rumore, quindi il default scelto per ragioni di dominio resta entro lo 0,4% dall'ottimo misurabile. A parità di evidenze, l'**LLM locale supera l'NLI proprio dove questo falliva** — SUPPORTED da 0,065 a 0,753 — ma è più debole nel confutare: i due sbagliano in modo complementare.
+**Reranking** is the single biggest contribution (+6.1% NDCG, with recall unchanged: it reorders, it doesn't retrieve). **Tuning α makes things worse**: with 11 queries the curve is flat and the grid search selects noise, so the default chosen on domain grounds stays within 0.4% of the measurable optimum. At equal evidence, the **local LLM beats NLI exactly where the latter failed**, with SUPPORTED going from 0.065 to 0.753, but it is weaker at refuting: the two err in complementary ways.
 
-Ciò che i numeri **non** dicono: che i social siano più diversi delle news. Il corpus social è campionato in modo bilanciato per costruzione, quindi il *confronto* fra i due ecosistemi è confondato e sovrastima la differenza. I valori assoluti sulle news, campione naturale, restano validi. La contromisura — il *diversity lift* — è definita nella relazione e non ancora calcolata.
+What the numbers do **not** say: that social media are more diverse than news. The social corpus is sampled in a balanced way by construction, so the *comparison* between the two ecosystems is confounded and overstates the difference. The absolute values on news, a natural sample, remain valid. The countermeasure, the *diversity lift*, is defined in the report and not yet computed.
 
-Documentazione completa in [`docs/relazione/`](docs/relazione/).
+The full documentation is in [`docs/relazione/`](docs/relazione/) (the report is in Italian; so are the code comments and the dashboard interface).
 
 ---
 
-## Installazione
+## Installation
 
-Richiede **Python 3.11** e [uv](https://docs.astral.sh/uv/).
+Requires **Python 3.11** and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync --extra dev
@@ -80,7 +80,7 @@ uv run python -m spacy download en_core_web_sm
 uv run python -c "import nltk; nltk.download('stopwords'); nltk.download('wordnet'); nltk.download('omw-1.4')"
 ```
 
-Il motore di verdetto LLM è facoltativo e richiede [Ollama](https://ollama.com) in esecuzione in locale:
+The LLM verdict engine is optional and requires [Ollama](https://ollama.com) running locally:
 
 ```bash
 ollama pull qwen2.5:7b
@@ -88,7 +88,7 @@ ollama pull qwen2.5:7b
 
 ---
 
-## Uso
+## Usage
 
 ### Dashboard
 
@@ -96,9 +96,9 @@ ollama pull qwen2.5:7b
 uv run streamlit run dashboard.py
 ```
 
-Le query canoniche sono precalcolate: la demo è istantanea e non richiede GPU. Selezionando una posizione la colonna si allarga e **le altre restano visibili** — un filtro rigido, qui, ricostruirebbe l'echo chamber.
+The canonical queries are precomputed: the demo is instant and needs no GPU. When you select a stance the column widens and **the others stay visible**: a hard filter, here, would rebuild the echo chamber.
 
-### Riga di comando
+### Command line
 
 ```bash
 uv run python main.py "is nuclear power safe" --topic nuclear_energy
@@ -112,103 +112,103 @@ uv run python main.py "are vaccines safe" --topic vaccines --fact-check --engine
 uv run python main.py -i --topic climate_change
 ```
 
-Dopo `uv sync` è disponibile anche come comando installato: `uv run echo-search -i`.
+After `uv sync` it is also available as an installed command: `uv run echo-search -i`.
 
-> **GPU.** L'ambiente di base installa `torch` in versione CPU: tutto funziona, ma una ricerca
-> con fact-check richiede minuti invece di secondi. Per usare la scheda video serve un ambiente
-> effimero con l'indice CUDA — e va passato **sempre lo stesso identico insieme** di `--with`,
-> altrimenti uv riusa il torch CPU già presente senza dirlo:
+> **GPU.** The base environment installs the CPU build of `torch`: everything works, but a search
+> with fact-checking takes minutes instead of seconds. To use the graphics card you need an
+> ephemeral environment with the CUDA index, and you must **always pass the exact same set** of
+> `--with`, otherwise uv silently reuses the CPU torch already present:
 >
 > ```bash
 > uv run --no-sync --with "torch==2.2.2" --with "accelerate>=0.30" --with "datasets>=2.19" --index "https://download.pytorch.org/whl/cu121" python main.py "is nuclear power safe" --topic nuclear_energy --fact-check
 > ```
 >
-> Per verificare che sia andata a buon fine: `torch.cuda.is_available()` deve essere `True`.
+> To check that it worked: `torch.cuda.is_available()` must be `True`.
 
-### Da codice
+### From code
 
 ```python
 from src.app import EchoSearch
 
 app = EchoSearch(topic="climate_change")
-esito = app.search("is climate change caused by humans", target="global warming")
+result = app.search("is climate change caused by humans", target="global warming")
 
-for eco, blocco in esito["ecosystems"].items():
-    print(eco, blocco["diversity"]["diversity_score"], blocco["pool_distribution"])
-    for etichetta, docs in blocco["columns"].items():
-        print(" ", etichetta, len(docs))
+for eco, block in result["ecosystems"].items():
+    print(eco, block["diversity"]["diversity_score"], block["pool_distribution"])
+    for label, docs in block["columns"].items():
+        print(" ", label, len(docs))
 ```
 
 ---
 
-## Ricostruire tutto da zero
+## Rebuilding everything from scratch
 
-Gli indici e i modelli non sono versionati: si rigenerano dagli script. Ogni script di costruzione dati emette un `MANIFEST.json` con gli hash SHA-256 degli artefatti prodotti.
-
-```bash
-uv run --extra data python scripts/build_corpora.py       # corpus news da CC-News
-uv run python scripts/build_social_corpus.py              # corpus social (tweet etichettati)
-uv run python scripts/build_kb.py                         # KB Wikipedia
-uv run python scripts/build_stance_splits.py              # split VAST + SemEval
-uv run --extra data python scripts/index_corpus.py        # indici BM25 + FAISS
-uv run python scripts/train_stance.py                     # fine-tuning dello stance detector
-uv run python scripts/precompute_demo.py                  # cache della demo
-```
-
-## Riprodurre le misure
+Indexes and models are not versioned: they are regenerated by the scripts. Every data-building script emits a `MANIFEST.json` with the SHA-256 hashes of the artifacts it produced.
 
 ```bash
-uv run python scripts/eval_retrieval.py                   # ablazione a 6 sistemi
-uv run python scripts/eval_agreement.py                   # κ fra i due annotatori
-uv run python scripts/eval_stance.py                      # stance su benchmark
-uv run python scripts/evaluate_pivot.py                   # stance social + diversity
-uv run python scripts/eval_climatefever.py --engine nli   # fact-check, motore NLI
-uv run python scripts/eval_climatefever.py --engine llm   # fact-check, motore LLM
+uv run --extra data python scripts/build_corpora.py       # news corpus from CC-News
+uv run python scripts/build_social_corpus.py              # social corpus (labeled tweets)
+uv run python scripts/build_kb.py                         # Wikipedia KB
+uv run python scripts/build_stance_splits.py              # VAST + SemEval splits
+uv run --extra data python scripts/index_corpus.py        # BM25 + FAISS indexes
+uv run python scripts/train_stance.py                     # stance detector fine-tuning
+uv run python scripts/precompute_demo.py                  # demo cache
 ```
 
-I giudizi di rilevanza annotati a mano sono in `data/gold/` (versionati: sono lavoro umano, non rigenerabili). I fogli vuoti da annotare si producono con `scripts/build_qrels_annotation.py`; le linee guida seguite sono in [`docs/annotazione-qrels.md`](docs/annotazione-qrels.md).
+## Reproducing the measurements
+
+```bash
+uv run python scripts/eval_retrieval.py                   # 6-system ablation
+uv run python scripts/eval_agreement.py                   # κ between the two annotators
+uv run python scripts/eval_stance.py                      # stance on benchmarks
+uv run python scripts/evaluate_pivot.py                   # social stance + diversity
+uv run python scripts/eval_climatefever.py --engine nli   # fact-check, NLI engine
+uv run python scripts/eval_climatefever.py --engine llm   # fact-check, LLM engine
+```
+
+The hand-annotated relevance judgments are in `data/gold/` (versioned: they are human work and cannot be regenerated). The empty sheets to annotate are produced with `scripts/build_qrels_annotation.py`; the guidelines followed are in [`docs/annotation-qrels.md`](docs/annotation-qrels.md).
 
 ---
 
-## Struttura
+## Structure
 
 ```
 src/
-  app.py               orchestrazione della pipeline + CLI
+  app.py               pipeline orchestration + CLI
   retrieval/           sparse (BM25) · dense (bge+FAISS) · hybrid · reranker · column_balancer
   nlp/                 stance_detector · claims · kb_evidence · nli_verdict · llm_verdict
-                       fact_checker (compone le tre fasi) · summarizer · kb
-  evaluation/          metrics (pure) · qrels (caricamento dei giudizi)
+                       fact_checker (composes the three phases) · summarizer · kb
+  evaluation/          metrics (pure) · qrels (judgment loading)
   preprocessing/       text_preprocessor
-  gui/                 format (decisioni pure) · render (HTML)
+  gui/                 format (pure decisions) · render (HTML)
   utils/               config · device · logger · ranking · text
-scripts/               costruzione dei dati e valutazione (dipendenze pesanti, mai importati dalla pipeline)
-configs/               config.yaml (iperparametri, ognuno motivato) · topics.yaml · sources.yaml
-data/                  corpora, KB, indici, gold set, cache della demo
-tests/                 suite pytest
-docs/                  relazione, presentazione, linee guida di annotazione
+scripts/               data building and evaluation (heavy dependencies, never imported by the pipeline)
+configs/               config.yaml (hyperparameters, each one justified) · topics.yaml · sources.yaml
+data/                  corpora, KB, indexes, gold set, demo cache
+tests/                 pytest suite
+docs/                  report, presentation, annotation guidelines
 ```
 
-Una convenzione attraversa tutto il codice: **funzioni pure separate dall'I/O**. Parsing, campionamento, metriche e aggregazioni non toccano disco né rete, e solo `main()` lo fa. È la ragione per cui la suite copre le parti che contano senza GPU e senza download.
+One convention runs through the whole code: **pure functions separated from I/O**. Parsing, sampling, metrics and aggregations touch neither disk nor network, and only `main()` does. This is why the suite covers the parts that matter without a GPU and without downloads.
 
 ---
 
-## Test
+## Tests
 
 ```bash
 uv run pytest tests -q
 ```
 
-174 test, circa 30 secondi, nessuna rete e nessuna GPU.
+174 tests, about 30 seconds, no network and no GPU.
 
 ---
 
-## Dati e licenze
+## Data and licenses
 
-Il codice è sotto licenza [MIT](LICENSE). I dati che il progetto usa hanno licenze proprie:
+The code is under the [MIT](LICENSE) license. The data the project uses has its own licenses:
 
-- **Notizie:** articoli di [CC-News](https://commoncrawl.org/blog/news-dataset-available), un crawl del web pubblico. Il testo resta degli editori e viene incluso solo in `data/gold/` (giudizi di rilevanza) e `data/demo_cache/` (demo precalcolata), a scopo di ricerca e didattica.
-- **Stance:** [VAST](https://github.com/emilyallaway/zero-shot-stance) e SemEval-2016 (Task 6).
-- **Fact-checking:** [ClimateFEVER](https://www.sustainablefinance.uzh.ch/en/research/climate-fever.html) per la valutazione e Wikipedia (CC BY-SA) per la base di conoscenza.
+- **News:** articles from [CC-News](https://commoncrawl.org/blog/news-dataset-available), a crawl of the public web. The text remains the publishers' and is included only in `data/gold/` (relevance judgments) and `data/demo_cache/` (precomputed demo), for research and teaching purposes.
+- **Stance:** [VAST](https://github.com/emilyallaway/zero-shot-stance) and SemEval-2016 (Task 6).
+- **Fact-checking:** [ClimateFEVER](https://www.sustainablefinance.uzh.ch/en/research/climate-fever.html) for evaluation and Wikipedia (CC BY-SA) for the knowledge base.
 
-Corpora, KB e modelli addestrati non sono versionati: si rigenerano con gli script indicati sopra.
+Corpora, KBs and trained models are not versioned: they are regenerated with the scripts listed above.
